@@ -1,0 +1,25 @@
+# Secretos: NUNCA subir
+.env
+
+# Entorno virtual
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Audios de prueba (pueden pesar mucho y son datos personales)
+*.m4a
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.webm
+
+# Editor y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
