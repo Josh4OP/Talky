@@ -1,12 +1,12 @@
 ---
 id: T03
 title: Detector de muletillas con contexto
-status: todo
+status: done
 phase: 1-nucleo
 depends_on: [T02]
 requirements: [RF-04]
 estimate: 3h
-tests: [tests/unit/test_filler_detector.py]
+tests: [tests/unit/test_filler_detector.py, tests/unit/test_filler_detector_rules.py]
 touches: [src/application/services/filler_detector.py]
 ---
 # T03 - Detector de muletillas con contexto
