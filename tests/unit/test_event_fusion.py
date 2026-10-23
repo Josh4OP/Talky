@@ -12,7 +12,6 @@ Alcance: solo muletillas vocales de UNA palabra (eh, ehm, mmm, hmm). "o sea" lo 
 
 from src.application.services.event_fusion import fuse_fillers
 from src.domain.entities.events import AcousticEvent
-
 from src.domain.interfaces.ports import Word
 
 

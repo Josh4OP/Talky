@@ -15,6 +15,7 @@ Puerto: src/domain/interfaces/ports.py -> TextEmbedder.embed(texts) -> list[list
 
 import pytest
 from fakes import ScriptedEmbedder
+
 from src.application.services.coherence import coherence_report, cosine, make_windows
 
 TWELVE = " ".join(f"Oración número {i}." for i in range(12))

@@ -9,6 +9,7 @@ Contrato: src/application/routing/input_router.py
 """
 
 import pytest
+
 from src.application.routing.input_router import AudioInfo, RoutingSettings, route_input
 
 MB = 1024 * 1024
