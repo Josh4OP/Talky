@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar dependencias
+        run: |
+          sudo apt-get update && sudo apt-get install -y libsndfile1
+          pip install -r requirements-dev.txt
+      - name: Estilo
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Pruebas
+        run: python -m pytest -q
+      - name: Coherencia del arnés
+        run: python harness/tools/check_harness.py
+      - name: Pruebas del arnés
+        run: python -m pytest harness/harness_tests -q

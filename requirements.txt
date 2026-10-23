@@ -1,0 +1,9 @@
+# Núcleo: lo mínimo para correr la API con Groq
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pydantic>=2.6
+openai>=1.30
+python-dotenv>=1.0
+numpy>=1.26
+av>=12.0

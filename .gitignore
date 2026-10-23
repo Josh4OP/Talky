@@ -23,3 +23,13 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# --- TALKY (arnés) ---
+.pytest_cache/
+.ruff_cache/
+*.db
+models/*.joblib
+evals/results/
+evals/dataset/audio/
+mobile/build/
+mobile/.dart_tool/

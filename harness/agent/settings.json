@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest:*)",
+      "Bash(python harness/tools/tasks.py:*)",
+      "Bash(python harness/tools/check_harness.py:*)",
+      "Bash(python evals/run_eval.py:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(pip install -r requirements:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout -b:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Read(./src/**)",
+      "Read(./tests/**)",
+      "Read(./harness/**)",
+      "Read(./evals/**)",
+      "Read(./mobile/**)",
+      "Edit(./src/**)",
+      "Edit(./scripts/**)",
+      "Edit(./mobile/**)",
+      "Edit(./docs/**)",
+      "Edit(./harness/prompts/tasks/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(cat .env:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Edit(./tests/fakes.py)",
+      "Edit(./tests/conftest.py)"
+    ]
+  }
+}

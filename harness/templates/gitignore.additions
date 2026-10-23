@@ -1,0 +1,20 @@
+# --- TALKY (arnés) ---
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.db
+models/*.joblib
+evals/results/
+evals/dataset/audio/
+mobile/build/
+mobile/.dart_tool/
+*.m4a
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.webm

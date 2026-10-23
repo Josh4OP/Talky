@@ -1,0 +1,21 @@
+{
+  "_comentario": "Copia este archivo como manifest.json y reemplaza las entradas por tus grabaciones reales. Los audios van en evals/dataset/audio/ (ignorada por git).",
+  "entries": [
+    {
+      "id": "ana-01-expo-clima",
+      "speaker": "ana",
+      "audio": "audio/ana-01.wav",
+      "reference_transcript": "Eh, buenos días a todos. Hoy voy a hablar sobre el cambio climático. Mmm, o sea, es un problema muy importante. Entonces, vamos a ver las causas.",
+      "expected_fillers": {"eh": 1, "mmm": 1, "o sea": 1, "entonces": 1},
+      "events": [[0.0, 0.4, "filler"], [6.1, 6.8, "filler"], [20.0, 21.5, "hum"]]
+    },
+    {
+      "id": "beto-01-expo-redes",
+      "speaker": "beto",
+      "audio": "audio/beto-01.wav",
+      "reference_transcript": "Bueno, este, las redes neuronales aprenden de los datos. La verdad, no es tan complicado como parece.",
+      "expected_fillers": {"bueno": 1, "este": 1, "la verdad": 1},
+      "events": [[3.2, 3.9, "filler"]]
+    }
+  ]
+}

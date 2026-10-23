@@ -1,0 +1,18 @@
+line-length = 120
+target-version = "py311"
+extend-exclude = ["harness", "mobile"]
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "BLE"]
+ignore = [
+    "E501",   # el formateador ajusta el código; los textos largos (prompts, mensajes) se permiten
+    "B008",   # Depends/File/Header en argumentos por defecto es el estilo de FastAPI
+    "B904",   # raise ... from en rutas HTTP: no aporta aquí
+    "B905",   # zip(strict=...) innecesario en este código
+    "UP017",  # datetime.UTC: ambas formas son válidas
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["BLE001", "B017"]
+"scripts/*" = ["BLE001"]
+"evals/*" = ["BLE001"]

@@ -1,0 +1,5 @@
+# Clasificador de eventos acústicos
+-r requirements.txt
+scikit-learn>=1.4
+librosa>=0.10
+joblib>=1.3
