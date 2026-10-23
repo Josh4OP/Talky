@@ -10,10 +10,10 @@ Contrato: src/infrastructure/external/groq_transcriber.py
 from types import SimpleNamespace
 
 import pytest
+from src.infrastructure.external.groq_transcriber import DEFAULT_PROMPT, GroqTranscriber
 
 from src.domain.exceptions import InvalidAudioError, ProviderError, RateLimitedError
 from src.domain.interfaces.ports import Transcriber
-from src.infrastructure.external.groq_transcriber import DEFAULT_PROMPT, GroqTranscriber
 
 
 class _Transcriptions:

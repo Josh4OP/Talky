@@ -17,11 +17,11 @@ import dataclasses
 
 import pytest
 from fakes import FakeEventClassifier, FakeLLM, FakeTranscriber, ScriptedEmbedder
-
 from src.application.routing.llm_router import LLMRouter
-from src.application.use_cases.analyze_presentation import AnalyzePresentation
 from src.config.container import Container, build_container, select_judge
 from src.config.settings import Settings
+
+from src.application.use_cases.analyze_presentation import AnalyzePresentation
 from src.domain.exceptions import ConfigurationError
 
 

@@ -18,10 +18,11 @@ pytest.importorskip("librosa")
 pytest.importorskip("sklearn")
 
 from src.domain.entities.events import AcousticEvent  # noqa: E402
-from src.domain.interfaces.ports import EventClassifier  # noqa: E402
 from src.infrastructure.ml.event_classifier import SklearnEventClassifier  # noqa: E402
 from src.infrastructure.ml.event_model import train_event_model  # noqa: E402
 from src.infrastructure.ml.features import extract_features  # noqa: E402
+
+from src.domain.interfaces.ports import EventClassifier  # noqa: E402
 
 SR = 16000
 WIN = 0.5

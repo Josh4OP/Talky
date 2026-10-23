@@ -13,7 +13,6 @@ Convención de etiquetado: en Audacity solo se marcan los eventos especiales
 """
 
 import pytest
-
 from src.infrastructure.ml.dataset import (
     LabeledWindow,
     LabelSpan,

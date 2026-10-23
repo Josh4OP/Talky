@@ -10,7 +10,6 @@ Contrato: src/application/services/transcript.py
 import re
 
 import pytest
-
 from src.application.services.transcript import (
     OMISSION_MARKER,
     chunk_text,

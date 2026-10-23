@@ -16,9 +16,9 @@ Reglas: nunca se guarda el audio; los resultados se aíslan por user_id; hilos s
 import threading
 
 import pytest
+from src.infrastructure.repositories.sqlite_analysis_repository import SqliteAnalysisRepository
 
 from src.domain.interfaces.ports import AnalysisSummary, StoredAnalysis
-from src.infrastructure.repositories.sqlite_analysis_repository import SqliteAnalysisRepository
 
 RESULT = {
     "duracion_s": 61.5,

@@ -13,8 +13,8 @@ from fakes import (
     ScriptedEmbedder,
     post_audio,
 )
-
 from src.domain.entities.events import AcousticEvent
+
 from src.domain.exceptions import RateLimitedError
 
 pytest.importorskip("fastapi")

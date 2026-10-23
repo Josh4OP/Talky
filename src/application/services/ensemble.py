@@ -50,7 +50,7 @@ class EnsembleAnalyzer:
         for _ in range(2):
             try:
                 return _parse_analisis(provider.complete_json(system, user))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 last = e
         raise last
 
@@ -64,14 +64,15 @@ class EnsembleAnalyzer:
                 name = futures[f].name
                 try:
                     results[name] = f.result()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     errors[name] = str(e)[:200]
                     logger.warning("Falló %s: %s", name, e)
 
         if len(results) < self.min_ok:
             raise RuntimeError(
                 f"Solo respondieron {len(results)} de {len(self.providers)} modelos "
-                f"(se requieren {self.min_ok}). Errores: {errors}")
+                f"(se requieren {self.min_ok}). Errores: {errors}"
+            )
 
         return {
             "modelos_usados": list(results),
@@ -98,11 +99,13 @@ class EnsembleAnalyzer:
         if self.judge and len(results) > 1:
             try:
                 payload = {k: v.model_dump() for k, v in results.items()}
-                user = (f"Datos objetivos:\n{objective_data}\n\n"
-                        f"Análisis de los modelos:\n"
-                        f"{json.dumps(payload, ensure_ascii=False)}")
+                user = (
+                    f"Datos objetivos:\n{objective_data}\n\n"
+                    f"Análisis de los modelos:\n"
+                    f"{json.dumps(payload, ensure_ascii=False)}"
+                )
                 return _parse_sintesis(self.judge.complete_json(JUDGE_SYSTEM, user)).model_dump()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning("El juez falló, uso unión simple: %s", e)
         return self._simple_union(results)
 

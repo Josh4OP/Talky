@@ -41,8 +41,10 @@ class AnalyzePresentation:
         if truncated:
             text = text[: self.max_chars]
 
-        objective = (f"Duración: {tr.duration:.0f} s | Ritmo: {wpm} palabras/min | "
-                     f"Pausas largas: {pausas['pausas_largas']} | Muletillas: {fillers}")
+        objective = (
+            f"Duración: {tr.duration:.0f} s | Ritmo: {wpm} palabras/min | "
+            f"Pausas largas: {pausas['pausas_largas']} | Muletillas: {fillers}"
+        )
         user_msg = f"{objective}\n\nTranscripción:\n{text}"
         if truncated:
             user_msg += "\n\n[Transcripción recortada por longitud]"

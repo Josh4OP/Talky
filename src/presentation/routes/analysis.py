@@ -15,8 +15,7 @@ def build_router(use_case) -> APIRouter:
     def create_analysis(file: UploadFile = File(...)):
         ext = os.path.splitext(file.filename or "")[1].lower()
         if ext not in ALLOWED:
-            raise HTTPException(
-                400, f"Formato no compatible. Formatos válidos: {', '.join(sorted(ALLOWED))}")
+            raise HTTPException(400, f"Formato no compatible. Formatos válidos: {', '.join(sorted(ALLOWED))}")
 
         tmp_path = None
         try:
