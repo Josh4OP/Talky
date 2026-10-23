@@ -1,12 +1,12 @@
 ---
 id: T04
 title: Manejo de transcripciones largas
-status: todo
+status: done
 phase: 1-nucleo
 depends_on: [T02]
 requirements: [RF-05, RNF-03]
 estimate: 2h
-tests: [tests/unit/test_transcript.py]
+tests: [tests/unit/test_transcript.py, tests/unit/test_transcript_rules.py]
 touches: [src/application/services/transcript.py]
 ---
 # T04 - Manejo de transcripciones largas
