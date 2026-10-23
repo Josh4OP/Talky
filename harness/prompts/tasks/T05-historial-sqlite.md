@@ -1,12 +1,12 @@
 ---
 id: T05
 title: Repositorio SQLite del historial
-status: todo
+status: done
 phase: 1-nucleo
 depends_on: [T02]
 requirements: [RF-07, RF-08, RNF-01]
 estimate: 3h
-tests: [tests/unit/test_sqlite_repository.py]
+tests: [tests/unit/test_sqlite_repository.py, tests/unit/test_sqlite_repository_rules.py]
 touches: [src/infrastructure/repositories/sqlite_analysis_repository.py]
 ---
 # T05 - Repositorio SQLite del historial
