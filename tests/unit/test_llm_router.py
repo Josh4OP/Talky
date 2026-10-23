@@ -9,8 +9,8 @@ Excepciones (src/domain/exceptions): RateLimitedError(retry_after=None), Provide
 
 import pytest
 from fakes import FakeLLM
-from src.application.routing.llm_router import LLMRouter
 
+from src.application.routing.llm_router import LLMRouter
 from src.domain.exceptions import AllProvidersFailedError, ProviderError, RateLimitedError
 from src.domain.interfaces.ports import LLMProvider
 

@@ -11,6 +11,7 @@ Variables de entorno: ver context/10-module-contracts.md (sección Settings).
 import dataclasses
 
 import pytest
+
 from src.config.settings import Settings
 
 

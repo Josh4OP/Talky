@@ -18,9 +18,8 @@ np = pytest.importorskip("numpy")
 pytest.importorskip("av")
 
 from src.application.routing.input_router import AudioInfo  # noqa: E402
-from src.infrastructure.audio import compress_for_upload, load_audio, probe_audio  # noqa: E402
-
 from src.domain.exceptions import InvalidAudioError  # noqa: E402
+from src.infrastructure.audio import compress_for_upload, load_audio, probe_audio  # noqa: E402
 
 
 def _write_sine(path, seconds=1.0, sr=44100, channels=2, amp=0.3, freq=440.0):

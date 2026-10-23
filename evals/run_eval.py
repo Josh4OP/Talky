@@ -115,6 +115,7 @@ def _build_transcriber(kind: str):
 
     if kind == "groq":
         from openai import OpenAI
+
         from src.infrastructure.external.groq_transcriber import GroqTranscriber
 
         client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=os.environ["GROQ_API_KEY"])

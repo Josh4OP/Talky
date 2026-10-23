@@ -16,3 +16,7 @@ ignore = [
 "tests/*" = ["BLE001", "B017"]
 "scripts/*" = ["BLE001"]
 "evals/*" = ["BLE001"]
+
+[lint.isort]
+# src siempre es propio; si no, el orden cambia cada vez que una tarea crea un módulo nuevo
+known-first-party = ["src"]

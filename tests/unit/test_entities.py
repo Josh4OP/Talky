@@ -3,9 +3,9 @@
 import pytest
 from fakes import analysis_payload
 from pydantic import ValidationError
-from src.domain.entities.events import EVENT_LABELS, AcousticEvent
 
 from src.domain.entities.analysis import Analisis, Aspecto, Evidencia
+from src.domain.entities.events import EVENT_LABELS, AcousticEvent
 
 
 def test_scores_are_rounded_and_bounded():

@@ -86,6 +86,7 @@ def client_factory(make_container):
     pytest.importorskip("httpx")
     pytest.importorskip("multipart")
     from fastapi.testclient import TestClient
+
     from src.presentation.app import create_app
 
     def _make(**kwargs):

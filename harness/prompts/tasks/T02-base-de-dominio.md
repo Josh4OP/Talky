@@ -1,7 +1,7 @@
 ---
 id: T02
 title: Base de dominio: puertos, entidades y excepciones
-status: todo
+status: done
 phase: 0-base
 depends_on: [T01]
 requirements: [RF-05, RF-10]

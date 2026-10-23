@@ -6,9 +6,8 @@ Reglas del modo estricto de Groq: todo objeto con `additionalProperties: false`
 y TODAS sus propiedades en `required`. Sin referencias $ref sin resolver en la raíz.
 """
 
-from src.infrastructure.external.json_schema import strict_json_schema
-
 from src.domain.entities.analysis import Analisis, Sintesis
+from src.infrastructure.external.json_schema import strict_json_schema
 
 
 def _objects(node):

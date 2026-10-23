@@ -9,6 +9,7 @@ Contrato: src/infrastructure/ml/postprocess.py
 """
 
 import pytest
+
 from src.domain.entities.events import AcousticEvent
 from src.infrastructure.ml.postprocess import WindowPrediction as P
 from src.infrastructure.ml.postprocess import merge_predictions
