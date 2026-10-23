@@ -1,7 +1,7 @@
 ---
 id: T01
 title: Preparar el repositorio y el entorno
-status: in_progress
+status: done
 phase: 0-base
 depends_on: []
 requirements: [-]
