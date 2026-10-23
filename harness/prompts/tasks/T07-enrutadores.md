@@ -1,12 +1,12 @@
 ---
 id: T07
 title: Enrutadores: entrada, LLM y transcriptor
-status: todo
+status: done
 phase: 1-nucleo
 depends_on: [T02]
 requirements: [RF-02, RF-03, RNF-03]
 estimate: 4h
-tests: [tests/unit/test_input_router.py, tests/unit/test_llm_router.py, tests/unit/test_transcriber_router.py]
+tests: [tests/unit/test_input_router.py, tests/unit/test_llm_router.py, tests/unit/test_transcriber_router.py, tests/unit/test_routing_rules.py]
 touches: [src/application/routing/__init__.py, src/application/routing/input_router.py, src/application/routing/llm_router.py, src/application/routing/transcriber_router.py]
 ---
 # T07 - Enrutadores: entrada, LLM y transcriptor
