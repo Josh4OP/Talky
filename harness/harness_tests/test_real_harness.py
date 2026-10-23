@@ -14,7 +14,14 @@ def test_real_tasks_form_a_valid_dag_and_start_at_t01():
     assert tasks and tasks[0].id == "T01"
     order = lib.topological_order(tasks)
     assert len(order) == len(tasks)
-    assert [t.id for t in lib.next_tasks(tasks)][:1] == ["T01"]
+    assert [t.id for t in tasks if not t.depends_on] == ["T01"]
+
+
+def test_real_tasks_always_have_a_way_forward():
+    tasks = lib.load_tasks(ROOT / "prompts" / "tasks")
+    pending = [t for t in tasks if t.status != "done"]
+    in_progress = [t for t in tasks if t.status == "in_progress"]
+    assert not pending or in_progress or lib.next_tasks(tasks)
 
 
 def test_every_acceptance_test_file_is_covered_by_some_task():
