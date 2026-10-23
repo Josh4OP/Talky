@@ -10,7 +10,6 @@ Entidad: src/domain/entities/analysis.py -> Evidencia(afirmacion, cita="", verif
 """
 
 from fakes import INVENTED_QUOTE, SAMPLE_TEXT, VALID_QUOTE
-
 from src.application.services.verifier import (
     drop_unverified,
     normalize,
@@ -18,6 +17,7 @@ from src.application.services.verifier import (
     verification_rate,
     verify_evidences,
 )
+
 from src.domain.entities.analysis import Evidencia
 
 

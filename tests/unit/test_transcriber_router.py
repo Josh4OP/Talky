@@ -22,13 +22,13 @@ import os
 
 import pytest
 from fakes import FakeTranscriber, sample_transcription
-
 from src.application.routing.input_router import AudioInfo, RoutingSettings
 from src.application.routing.transcriber_router import (
     FallbackTranscriber,
     LazyTranscriber,
     RoutedTranscriber,
 )
+
 from src.domain.exceptions import (
     AllProvidersFailedError,
     InvalidAudioError,

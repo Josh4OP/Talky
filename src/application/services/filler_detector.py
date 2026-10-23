@@ -2,9 +2,24 @@ import re
 from collections import Counter
 
 FILLERS = [
-    "o sea", "como que", "este", "eh", "ehh", "mmm", "mm", "básicamente",
-    "digamos", "entonces", "verdad", "ahí", "tipo", "bueno", "pues",
-    "la verdad", "en plan", "¿no?",
+    "o sea",
+    "como que",
+    "este",
+    "eh",
+    "ehh",
+    "mmm",
+    "mm",
+    "básicamente",
+    "digamos",
+    "entonces",
+    "verdad",
+    "ahí",
+    "tipo",
+    "bueno",
+    "pues",
+    "la verdad",
+    "en plan",
+    "¿no?",
 ]
 
 
