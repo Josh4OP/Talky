@@ -1,12 +1,12 @@
 ---
 id: T06
 title: Utilidades de audio y transcriptores (Groq y local)
-status: todo
+status: done
 phase: 1-nucleo
 depends_on: [T02, T07]
 requirements: [RF-03, RNF-03, RNF-04]
 estimate: 4h
-tests: [tests/ml/test_audio.py, tests/unit/test_groq_transcriber.py]
+tests: [tests/ml/test_audio.py, tests/unit/test_groq_transcriber.py, tests/ml/test_audio_rules.py, tests/unit/test_transcribers_rules.py]
 touches: [src/infrastructure/audio.py, src/infrastructure/external/groq_transcriber.py, src/infrastructure/external/whisper_transcriber.py]
 ---
 # T06 - Utilidades de audio y transcriptores (Groq y local)
