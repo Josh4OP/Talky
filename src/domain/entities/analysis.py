@@ -15,6 +15,12 @@ class Repeticion(Aspecto):
     palabras_repetidas: list[str] = []
 
 
+class Evidencia(BaseModel):
+    afirmacion: str
+    cita: str = ""
+    verificada: bool | None = None
+
+
 class Analisis(BaseModel):
     organizacion: Aspecto
     claridad: Aspecto
@@ -22,6 +28,7 @@ class Analisis(BaseModel):
     fortalezas: list[str] = []
     aspectos_por_mejorar: list[str] = []
     recomendaciones: list[str] = []
+    evidencias: list[Evidencia] = []
 
 
 class Sintesis(BaseModel):
