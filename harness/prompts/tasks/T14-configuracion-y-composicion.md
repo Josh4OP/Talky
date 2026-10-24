@@ -1,12 +1,12 @@
 ---
 id: T14
 title: Configuración, composición, ensamble y caso de uso v2
-status: todo
+status: done
 phase: 3-integracion
 depends_on: [T03, T04, T05, T06, T07, T08, T09, T12, T13]
 requirements: [RF-04, RF-05, RF-06, RF-09, RF-10, RNF-03]
 estimate: 6h
-tests: [tests/unit/test_settings.py, tests/unit/test_container.py]
+tests: [tests/unit/test_settings.py, tests/unit/test_container.py, tests/unit/test_composition_rules.py]
 touches: [src/config/settings.py, src/config/container.py, src/application/services/ensemble.py, src/application/use_cases/analyze_presentation.py]
 ---
 # T14 - Configuración, composición, ensamble y caso de uso v2
