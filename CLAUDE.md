@@ -49,7 +49,7 @@ Pipeline híbrido en capas con puertos y adaptadores. No es un sistema multiagen
 
 ```
 Flutter -> FastAPI -> validar -> RoutedTranscriber (Groq whisper-large-v3 | faster-whisper local)
-  -> muletillas (texto) + ritmo/pausas + eventos acústicos (Random Forest, opcional) + coherencia (embeddings, opcional)
+  -> muletillas (texto) + ritmo/pausas + eventos acústicos (Random Forest, aplazado fuera del MVP: D-11) + coherencia (embeddings, opcional)
   -> EnsembleAnalyzer (N LLM en paralelo) -> verificador de citas -> juez -> SQLite -> JSON
 ```
 

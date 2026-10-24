@@ -16,8 +16,8 @@ Convenciones: código y nombres técnicos de dominio en el idioma ya usado (ingl
 | `application/routing/*` | `tests/unit/test_input_router.py`, `test_llm_router.py`, `test_transcriber_router.py` | T07 |
 | `application/prompts`, `application/services/verifier`, `infrastructure/external/{json_schema,openai_compatible_llm}` | `tests/unit/test_prompts.py`, `test_verifier.py`, `test_json_schema.py`, `test_openai_compatible_llm.py` | T08 |
 | `application/services/coherence`, `infrastructure/ml/sentence_embedder` | `tests/unit/test_coherence.py` | T09 |
-| `infrastructure/ml/{dataset,features,event_model}` | `tests/ml/test_dataset.py`, `test_features.py`, `test_event_model.py` | T10 |
-| `infrastructure/ml/{postprocess,event_classifier}`, `scripts/train_event_model.py` | `tests/ml/test_postprocess.py`, `test_event_classifier.py` | T11 |
+| `infrastructure/ml/{dataset,features,event_model}` | `tests/ml/test_dataset.py`, `test_features.py`, `test_event_model.py` | T10 (aplazada, D-11) |
+| `infrastructure/ml/{postprocess,event_classifier}`, `scripts/train_event_model.py` | `tests/ml/test_postprocess.py`, `test_event_classifier.py` | T11 (aplazada, D-11) |
 | `application/services/event_fusion` | `tests/unit/test_event_fusion.py` | T12 |
 | `application/services/metrics` | `tests/unit/test_metrics.py` | T13 |
 | `config/settings`, `config/container`, `application/services/ensemble`, `application/use_cases/analyze_presentation` | `tests/unit/test_settings.py`, `tests/unit/test_container.py` | T14 |
@@ -179,6 +179,8 @@ Ver docstring de `tests/unit/test_metrics.py`. `pause_stats_from_words(words, du
 `AnalyzePresentation(transcriber, ensemble, *, max_chars=12000, embedder=None, event_classifier=None, verify=True).execute(audio_path) -> dict`. Orden: transcribir; si no hay texto, `InvalidAudioError("No se detectó voz en el audio")`; muletillas; ritmo y pausas (por palabras si existen, si no por segmentos); coherencia (opcional, con `try/except` y advertencia); eventos acústicos y fusión (opcional, con `try/except` y advertencia); `select_window`; línea de datos objetivos; ensamble; resultado con las claves del contrato HTTP (`context/07-api-contract.md`), sin `id` ni `creado_en`.
 
 ## Infraestructura de ML
+
+> Los contratos de `dataset.py`, `features.py`, `event_model.py`, `postprocess.py` y `event_classifier.py` (T10, T11) están aplazados: fuera del MVP, mejora futura (D-11). Se conservan para retomarlos; sus pruebas están excluidas de la recolección en `tests/ml/conftest.py`.
 
 ### `dataset.py` (T10)
 

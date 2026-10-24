@@ -8,11 +8,13 @@ Todo el ML del MVP es clásico y barato: corre en CPU y se entrena en minutos. N
 |---|---|---|---|---|
 | Reconocimiento de voz | Texto con marcas de tiempo por palabra | Whisper large-v3 en Groq; faster-whisper `small` local | No | Gratis (cuota) |
 | Detección de voz (VAD) | Separar voz de silencio | `vad_filter` de faster-whisper (Silero) | No | Local |
-| Clasificador de eventos acústicos | Muletillas vocales y tatareos que Whisper omite | Random Forest sobre rasgos | Sí | Local |
+| Clasificador de eventos acústicos (aplazado, D-11) | Muletillas vocales y tatareos que Whisper omite | Random Forest sobre rasgos | Sí | Local |
 | Embeddings de texto | Coherencia, saltos de tema, ideas repetidas | `paraphrase-multilingual-MiniLM-L12-v2` | No | Local |
 | Análisis semántico | Organización, claridad, recomendaciones | LLMs en Groq | No | Gratis (cuota) |
 
 ## 1. Clasificador de eventos acústicos
+
+> **Aplazado: fuera del MVP, mejora futura** (decisión D-11 en `12-decisions.md`, 2026-10-23). Este diseño se conserva para retomarlo después de la entrega; T10 y T11 están en estado `blocked`. En el MVP la bandera `ENABLE_EVENT_CLASSIFIER` queda apagada y `eventos_acusticos` es `null`.
 
 ### Etiquetas
 

@@ -19,7 +19,7 @@ def test_real_tasks_form_a_valid_dag_and_start_at_t01():
 
 def test_real_tasks_always_have_a_way_forward():
     tasks = lib.load_tasks(ROOT / "prompts" / "tasks")
-    pending = [t for t in tasks if t.status != "done"]
+    pending = [t for t in tasks if t.status not in ("done", "blocked")]
     in_progress = [t for t in tasks if t.status == "in_progress"]
     assert not pending or in_progress or lib.next_tasks(tasks)
 
