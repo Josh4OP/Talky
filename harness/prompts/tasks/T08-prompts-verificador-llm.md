@@ -1,12 +1,12 @@
 ---
 id: T08
 title: Prompts, verificador de citas, JSON estricto y adaptador LLM
-status: todo
+status: done
 phase: 1-nucleo
 depends_on: [T02]
 requirements: [RF-05, RF-06]
 estimate: 5h
-tests: [tests/unit/test_prompts.py, tests/unit/test_verifier.py, tests/unit/test_json_schema.py, tests/unit/test_openai_compatible_llm.py]
+tests: [tests/unit/test_prompts.py, tests/unit/test_verifier.py, tests/unit/test_json_schema.py, tests/unit/test_openai_compatible_llm.py, tests/unit/test_llm_output_rules.py]
 touches: [src/application/prompts.py, src/application/services/verifier.py, src/infrastructure/external/json_schema.py, src/infrastructure/external/openai_compatible_llm.py]
 ---
 # T08 - Prompts, verificador de citas, JSON estricto y adaptador LLM
