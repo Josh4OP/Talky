@@ -17,6 +17,8 @@ Combinar lo que Whisper transcribió como "eh" o "mmm" con lo que el clasificado
 
 ## Contexto
 
+Se mantiene en el MVP aunque el clasificador acústico (T10, T11) está aplazado (decisión D-11): es código puro, sin datos, y las pruebas de contrato de T14 y T15 lo ejercitan con un clasificador falso. En producción, sin clasificador, la etapa no se ejecuta y `eventos_acusticos` es `null`.
+
 Diseño en `harness/context/04-ml-design.md`, sección 2. Whisper omite muchas muletillas vocales; el clasificador no sabe qué sonido fue. Juntos dan mejor cobertura y se puede medir cuánto aporta cada fuente (T17). Las muletillas de varias palabras las cubre `filler_detector` (T03) sobre el texto.
 
 ## Alcance

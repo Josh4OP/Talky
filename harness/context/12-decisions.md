@@ -61,3 +61,10 @@ Formato: contexto, decisión, consecuencias. Una decisión se cambia agregando u
 - Contexto: `main.py` original leía variables sueltas.
 - Decisión: `Settings.from_env` tipado y validado, `create_app(container)` y `build_container(...)` con inyección.
 - Consecuencias: la aplicación es probable sin red; los valores inválidos fallan al arrancar con mensajes claros.
+
+## D-11: El clasificador acústico queda fuera del MVP (mejora futura)
+
+- Fecha: 2026-10-23. Complementa D-03, que sigue siendo el diseño para cuando se retome.
+- Contexto: el clasificador (T10, T11) necesita datos propios grabados y etiquetados a mano por cada integrante (al menos 3 hablantes y 150 ventanas por clase minoritaria) y unas 9 h de desarrollo, más la recolección de T17. Con la entrega el lunes 26 de octubre, ese tiempo pone en riesgo el camino que lleva a la demo (T13, T14, T15, T16). Sin el clasificador, las muletillas que Whisper sí transcribe se siguen detectando con `filler_detector` (T03).
+- Decisión: T10 y T11 pasan a estado `blocked` como mejora futura y no se entregan en el MVP. Se conservan el puerto `EventClassifier`, la etapa opcional del caso de uso, la bandera `ENABLE_EVENT_CLASSIFIER` (apagada) y la fusión de T12, porque las pruebas de contrato de T14 y T15 las cubren con un clasificador falso. T17 se reduce a medir el detector de muletillas, la transcripción y el verificador de citas. Las pruebas de `tests/ml/` de T10 y T11 se excluyen de la recolección en `tests/ml/conftest.py` mientras dure el aplazamiento; no se borran ni se modifican.
+- Consecuencias: el MVP no detecta tatareos ni las muletillas vocales que Whisper omite; `eventos_acusticos` es `null` en el resultado. El informe presenta el clasificador como trabajo futuro con su diseño (`context/04-ml-design.md`, sección 1). Para retomarlo: quitar la exclusión de `tests/ml/conftest.py`, pasar T10 y T11 a `todo`, devolver a T17 su dependencia de T11 y su alcance acústico, y grabar los datos.

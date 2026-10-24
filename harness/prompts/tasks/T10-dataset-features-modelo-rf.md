@@ -1,7 +1,7 @@
 ---
 id: T10
 title: Datos, características y modelo Random Forest
-status: todo
+status: blocked
 phase: 2-inteligencia
 depends_on: [T02]
 requirements: [RF-10]
@@ -10,6 +10,8 @@ tests: [tests/ml/test_dataset.py, tests/ml/test_features.py, tests/ml/test_event
 touches: [src/infrastructure/ml/__init__.py, src/infrastructure/ml/dataset.py, src/infrastructure/ml/features.py, src/infrastructure/ml/event_model.py]
 ---
 # T10 - Datos, características y modelo Random Forest
+
+> **Aplazada: fuera del MVP (mejora futura).** Decisión D-11 en `harness/context/12-decisions.md` (2026-10-23). No se implementa para la entrega del 26 de octubre. Sus pruebas están excluidas de la recolección en `tests/ml/conftest.py`. Para retomarla, sigue los pasos de D-11 y cambia el estado a `todo`.
 
 ## Objetivo
 

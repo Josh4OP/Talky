@@ -31,7 +31,7 @@ Cómo funciona, en resumen: la app (Flutter) sube un archivo de audio a una API 
 | Backend / API | Python 3.11+, FastAPI, Uvicorn |
 | Transcripción | Whisper `whisper-large-v3` en Groq; respaldo local con faster-whisper |
 | Análisis con LLM | Modelos gratuitos de Groq (opcional: Gemini, Ollama) mediante la API compatible con OpenAI |
-| Audio y ML | PyAV, librosa, scikit-learn (Random Forest para eventos acústicos), sentence-transformers (opcional) |
+| Audio y ML | PyAV y sentence-transformers (opcional). El clasificador acústico (Random Forest con scikit-learn y librosa) queda como mejora futura, fuera del MVP |
 | Base de datos | SQLite (historial por usuario) |
 | Calidad | pytest, ruff, GitHub Actions |
 | Metodología y arquitectura | Kanban y XP; arquitectura en capas con puertos y adaptadores |
@@ -55,7 +55,7 @@ Archivos de dependencias:
 | Archivo | Contenido |
 |---|---|
 | `requirements.txt` | Núcleo de la API: FastAPI, Uvicorn, pydantic, openai, python-dotenv, numpy, PyAV |
-| `requirements-ml.txt` | Clasificador de eventos acústicos: scikit-learn, librosa, joblib |
+| `requirements-ml.txt` | Clasificador de eventos acústicos (mejora futura): scikit-learn, librosa, joblib |
 | `requirements-local.txt` | Respaldo de transcripción local: faster-whisper (descarga el modelo en el primer uso) |
 | `requirements-embeddings.txt` | Coherencia temática: sentence-transformers (pesado, instala torch) |
 | `requirements-dev.txt` | Núcleo y ML, más pytest, httpx y ruff |
@@ -77,7 +77,7 @@ cp .env.example .env
 | `TRANSCRIBER`, `WHISPER_MODEL` | `auto`, `groq` o `local`, y tamaño del modelo local |
 | `MAX_TRANSCRIPT_CHARS`, `MAX_UPLOAD_MB`, `MAX_DURATION_S`, `MIN_DURATION_S` | Límites de entrada |
 | `ENABLE_VERIFIER`, `ENABLE_TEXT_EMBEDDINGS`, `EMBEDDING_MODEL` | Verificador de citas y coherencia con embeddings |
-| `ENABLE_EVENT_CLASSIFIER`, `EVENT_MODEL_PATH` | Clasificador acústico y ruta del modelo entrenado |
+| `ENABLE_EVENT_CLASSIFIER`, `EVENT_MODEL_PATH` | Clasificador acústico y ruta del modelo; se deja en `false` en el MVP (mejora futura) |
 | `DB_PATH`, `CORS_ORIGINS` | Base de datos del historial y orígenes permitidos |
 
 El detalle y los valores por defecto están en `.env.example`.

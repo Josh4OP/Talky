@@ -43,14 +43,14 @@ y siete secciones: Objetivo, Contexto, Alcance, Contrato, Criterios de aceptaci�
 | T07 | Enrutadores: entrada, LLM, transcriptor | 1 núcleo | T02 | tres pruebas de `unit/` | 4 h |
 | T08 | Prompts, verificador, JSON estricto, adaptador LLM | 1 núcleo | T02 | cuatro pruebas de `unit/` | 5 h |
 | T09 | Coherencia con embeddings de texto | 2 inteligencia | T02, T04 | `unit/test_coherence.py` | 4 h |
-| T10 | Datos, características y modelo Random Forest | 2 inteligencia | T02 | tres pruebas de `ml/` | 5 h |
-| T11 | Clasificador de eventos y script de entrenamiento | 2 inteligencia | T06, T10 | dos pruebas de `ml/` | 4 h |
+| T10 | Datos, características y modelo Random Forest (aplazada, D-11) | 2 inteligencia | T02 | tres pruebas de `ml/` | 5 h |
+| T11 | Clasificador de eventos y script de entrenamiento (aplazada, D-11) | 2 inteligencia | T06, T10 | dos pruebas de `ml/` | 4 h |
 | T12 | Fusión de muletillas | 2 inteligencia | T02, T03 | `unit/test_event_fusion.py` | 3 h |
 | T13 | Métricas de ritmo y pausas por palabra | 2 inteligencia | T02 | `unit/test_metrics.py` | 2 h |
 | T14 | Configuración, composición, ensamble, caso de uso | 3 integración | T03-T09, T12, T13 | `unit/test_settings.py`, `test_container.py` | 6 h |
 | T15 | API v1 con historial | 3 integración | T14 | `api/test_routes.py`, `e2e/test_pipeline_fake.py` | 4 h |
 | T16 | App Flutter | 4 cliente y calidad | T15 | `flutter test` | 8 h |
-| T17 | Datos propios, entrenamiento y evaluación | 4 cliente y calidad | T11, T15 | `evals/` | 8 h |
+| T17 | Datos propios y evaluación (sin clasificador acústico) | 4 cliente y calidad | T15 | `evals/` | 5 h |
 | T18 | Documentación, demo y endurecimiento | 4 cliente y calidad | T16, T17 | `check_harness` y suite completa | 5 h |
 
 Las estimaciones son para una persona asistida por el agente; sirven para ordenar, no para comprometer.
@@ -62,22 +62,22 @@ T01 -> T02 -> T03 -----------------> T12 ---------------+
          |                                               |
          +--> T04 --> T09 ---------------------------+   |
          +--> T05 -----------------------------------+   |
-         +--> T07 --> T06 --> T11 (también T10) ---+ |   |
+         +--> T07 --> T06 ------------------------+ |   |
          +--> T08 -----------------------------------+--+--> T14 --> T15 --> T16 --+--> T18
-         +--> T10 --> T11 --------------------------> T17 (también T15) ---------+
+         +--> T10 --> T11   (aplazadas, D-11)                       T15 --> T17 --+
          +--> T13 -----------------------------------+
 ```
 
-Tareas independientes entre sí tras T02: T03, T04, T05, T07, T08, T10, T13. Se pueden trabajar en ramas paralelas con sesiones separadas (idealmente con `git worktree`). Las de la fase 3 en adelante son secuenciales.
+Tareas independientes entre sí tras T02: T03, T04, T05, T07, T08, T13. T10 y T11 están aplazadas (fuera del MVP, D-11). Se pueden trabajar en ramas paralelas con sesiones separadas (idealmente con `git worktree`). Las de la fase 3 en adelante son secuenciales.
 
 ## Plan sugerido hasta el lunes 26 de octubre de 2026
 
 | Día | Objetivo |
 |---|---|
 | Jueves 22 | T01, T02 y arrancar en paralelo T03, T04, T05, T07, T08, T13 |
-| Viernes 23 | Terminar fase 1 (T06) y fase 2: T09, T10, T11, T12. Empezar a grabar y etiquetar datos (parte humana de T17) |
+| Viernes 23 | Terminar fase 1 (T06) y fase 2: T09, T12, T13. Empezar a grabar clips con transcripción de referencia (parte humana de T17). T10 y T11 quedan aplazadas (D-11) |
 | Sábado 24 | T14 y T15 (hito: suite de aceptación completa en verde). Empezar T16 |
-| Domingo 25 | T16, T17 (entrenar y medir con los datos grabados) y T18 |
+| Domingo 25 | T16, T17 (medir con los datos grabados) y T18 |
 | Lunes 26 | Ensayo final con `checklists/demo-monday.md` y entrega |
 
 ## Orden de recorte si el plazo se aprieta
@@ -87,7 +87,7 @@ Se recorta de abajo hacia arriba, siempre dejando la aplicación funcionando:
 1. Dockerfile y pulido de T18 (conservar README y guion de demo).
 2. T17 parcial: medir solo detector de muletillas y transcripción; dejar el clasificador acústico como prueba de concepto documentada.
 3. Funciones secundarias de la app (gráfico de ritmo, borrado desde el historial); conservar subir, resultados e historial.
-4. T11 y T10: el clasificador acústico queda apagado (`ENABLE_EVENT_CLASSIFIER=false`); T12 se conserva porque funciona solo con palabras de Whisper.
+4. T11 y T10: **aplicado el 2026-10-23 (D-11)**. El clasificador acústico queda apagado (`ENABLE_EVENT_CLASSIFIER=false`); T12 se conserva porque funciona solo con palabras de Whisper.
 5. T09: la coherencia queda apagada (`ENABLE_TEXT_EMBEDDINGS=false`).
 
 No se recorta: T01 a T08, T13, T14, T15 (núcleo y API con historial) ni las pruebas.

@@ -26,6 +26,8 @@ Arquitectura y degradación en `harness/context/02-architecture.md`. Variables d
 3. `ensemble.py`: `analyze(system, user, objective_data, transcript, verify)` con verificación de evidencias, `evidencias` deduplicadas, `verificacion`, y `modelos_fallidos`. El prompt del juez viene de `prompts.JUDGE_SYSTEM`.
 4. `analyze_presentation.py`: `AnalyzePresentation(transcriber, ensemble, *, max_chars, embedder, event_classifier, verify)` con las etapas opcionales aisladas por `try/except`, `select_window`, muletillas, ritmo, pausas, coherencia, eventos y fusión.
 
+Clasificador acústico aplazado (decisión D-11): T10 y T11 no existen en el MVP, así que `src/infrastructure/ml/event_classifier.py` no está. El contenedor solo intenta construir el clasificador real si `ENABLE_EVENT_CLASSIFIER=true`, con importación perezosa; si falta el módulo o el modelo, deja `event_classifier=None` y agrega una advertencia que contenga "evento". La etapa del caso de uso se conserva intacta para cuando se retome.
+
 No hacer: leer `os.environ` fuera de `Settings.from_env`, instanciar adaptadores fuera del contenedor, ni importar `sklearn`, `librosa` o `sentence_transformers` al nivel de módulo.
 
 ## Contrato

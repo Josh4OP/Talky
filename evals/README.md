@@ -8,7 +8,7 @@ Esta carpeta es el harness de evaluación: mide con números qué tan bien funci
 |---|---|---|
 | `text` | ¿El detector de muletillas acierta sobre una transcripción perfecta? | Solo el manifiesto |
 | `transcribe` | ¿Cuánto error de palabras (WER) tiene el transcriptor y cuántas muletillas conserva? | Audios y clave de Groq o Whisper local |
-| `events` | ¿El clasificador acústico encuentra las muletillas vocales y tarareos? | Audios con eventos etiquetados y un modelo entrenado |
+| `events` | ¿El clasificador acústico encuentra las muletillas vocales y tarareos? (aplazado, fuera del MVP: D-11) | Audios con eventos etiquetados y un modelo entrenado |
 
 Métricas (en `metrics.py`, probadas en `harness_tests/`):
 - **WER**: errores de palabras sobre palabras de referencia (0 es perfecto).

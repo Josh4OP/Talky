@@ -15,7 +15,7 @@ Fuente oficial: documento "Avance Proyecto de Aula, requerimientos" del equipo (
 | RF-07 | Guardar resultado | El resultado se guarda para consultarlo después. | Alta | Tras un análisis exitoso, aparece en el historial del usuario. |
 | RF-08 | Consultar historial | El usuario consulta análisis anteriores. | Alta | Muestra mejoras, fortalezas, recomendaciones, fecha, nombre del audio y muletillas. |
 | RF-09 | Ritmo y duración (propuesto) | Palabras por minuto, perfil de ritmo y pausas largas. Sale de la entrevista ("duración y ritmo adecuados"). | Media | El resultado incluye `ppm`, `ritmo` y `pausas`. |
-| RF-10 | Eventos acústicos (propuesto) | Detección de muletillas vocales y tatareos con un modelo de audio. | Media | El resultado incluye `eventos_acusticos` cuando el clasificador está activo. |
+| RF-10 | Eventos acústicos (propuesto; aplazado, fuera del MVP, D-11) | Detección de muletillas vocales y tatareos con un modelo de audio. | Media | El resultado incluye `eventos_acusticos` cuando el clasificador está activo. |
 | RF-11 | Aplicación móvil (propuesto) | App Flutter para subir audio, ver resultados e historial. | Media | Flujo completo desde el teléfono contra la API. |
 
 ## Requerimientos no funcionales
@@ -47,7 +47,7 @@ Fuente oficial: documento "Avance Proyecto de Aula, requerimientos" del equipo (
 | RF-06 | T08, T14 |
 | RF-07, RF-08 | T05, T15, T16 |
 | RF-09 | T13 |
-| RF-10 | T10, T11, T12 |
+| RF-10 | T10, T11 (aplazadas, D-11), T12 |
 | RF-11, RNF-02 | T16 |
 | RNF-01 | T05, T15 |
 | RNF-03 | T04, T07, T17 |

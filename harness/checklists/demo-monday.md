@@ -16,7 +16,7 @@ Ensaya esta lista dos veces: el domingo por la noche y el lunes antes de la entr
 - [ ] `python -m pytest -q` en verde en esa máquina.
 - [ ] Modo con Groq: análisis completo en menos de 60 segundos.
 - [ ] Modo sin red o con `TRANSCRIBER=local`: funciona (más lento) y muestra la advertencia de respaldo.
-- [ ] Modelo del clasificador acústico presente en `models/` si se va a mostrar (`ENABLE_EVENT_CLASSIFIER=true`); si no, dejar la bandera apagada.
+- [ ] `ENABLE_EVENT_CLASSIFIER=false`: el clasificador acústico está aplazado (fuera del MVP, D-11).
 - [ ] Embeddings descargados una vez (`ENABLE_TEXT_EMBEDDINGS=true`) para que la primera petición no espere la descarga; si no, apagada.
 - [ ] La app Flutter instalada en el teléfono o emulador, apuntando a la IP correcta de la API.
 - [ ] El historial muestra al menos dos análisis previos.
@@ -34,9 +34,9 @@ Ensaya esta lista dos veces: el domingo por la noche y el lunes antes de la entr
 ## Guion de la demostración (5 minutos)
 
 1. Problema (30 s): estudiantes con muletillas, nervios y falta de retroalimentación.
-2. Arquitectura en una diapositiva (60 s): pipeline híbrido; Whisper en Groq; clasificador acústico; embeddings; ensamble de LLM con verificador de citas.
+2. Arquitectura en una diapositiva (60 s): pipeline híbrido; Whisper en Groq; embeddings; ensamble de LLM con verificador de citas. Mencionar el clasificador acústico como mejora futura.
 3. Demo en vivo (2 min): subir el audio, mostrar puntajes, muletillas, ritmo, evidencias citadas, historial.
-4. Resultados medidos (60 s): tablas de `docs/evaluacion.md` (WER, F1 de muletillas, F1 del clasificador).
+4. Resultados medidos (60 s): tablas de `docs/evaluacion.md` (WER, F1 de muletillas, tasa de verificación de citas).
 5. Limitaciones y trabajo futuro (30 s): identidad declarada, pocos hablantes, cuotas gratuitas; autenticación, más datos, grabación en la app.
 
 ## Si algo falla en vivo

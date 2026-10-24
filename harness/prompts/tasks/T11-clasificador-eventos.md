@@ -1,7 +1,7 @@
 ---
 id: T11
 title: Clasificador de eventos acústicos y script de entrenamiento
-status: todo
+status: blocked
 phase: 2-inteligencia
 depends_on: [T06, T10]
 requirements: [RF-10]
@@ -10,6 +10,8 @@ tests: [tests/ml/test_postprocess.py, tests/ml/test_event_classifier.py]
 touches: [src/infrastructure/ml/postprocess.py, src/infrastructure/ml/event_classifier.py, scripts/train_event_model.py]
 ---
 # T11 - Clasificador de eventos acústicos y script de entrenamiento
+
+> **Aplazada: fuera del MVP (mejora futura).** Decisión D-11 en `harness/context/12-decisions.md` (2026-10-23). No se implementa para la entrega del 26 de octubre. Sus pruebas están excluidas de la recolección en `tests/ml/conftest.py`. Para retomarla, sigue los pasos de D-11 y cambia el estado a `todo` (depende de T10).
 
 ## Objetivo
 

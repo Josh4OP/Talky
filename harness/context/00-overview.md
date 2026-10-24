@@ -26,14 +26,14 @@ Entregar un MVP el lunes 26 de octubre de 2026. El MVP debe:
 | Análisis con LLM | Varios modelos gratuitos de Groq opinan en paralelo y un juez los sintetiza | T08, T14 |
 | Verificador de citas | Cada afirmación del LLM debe traer una cita textual que exista en la transcripción; si no, se descarta | T08 |
 | Coherencia con embeddings | Saltos de tema e ideas repetidas, medidos con embeddings de texto | T09 |
-| Clasificador acústico | Random Forest sobre MFCC y rasgos de tono para detectar muletillas vocales y tatareos que Whisper no transcribe | T10, T11 |
-| Fusión | Combinar lo que oyó Whisper con lo que detectó el clasificador | T12 |
+| Clasificador acústico | Random Forest sobre MFCC y rasgos de tono para detectar muletillas vocales y tatareos que Whisper no transcribe. **Aplazado: fuera del MVP, mejora futura (D-11)** | T10, T11 |
+| Fusión | Combinar lo que oyó Whisper con lo que detectó el clasificador. Se mantiene; sin clasificador, la etapa no se ejecuta | T12 |
 | API | FastAPI con historial por usuario | T14, T15 |
 | App | Flutter: subir, ver resultados, historial | T16 |
-| Evaluación | Harness de métricas y dataset propio | T17 |
+| Evaluación | Harness de métricas y dataset propio (sin el clasificador acústico) | T17 |
 | Cierre | Documentación, demo, endurecimiento | T18 |
 
-Fuera del MVP (no construir): autenticación real con contraseñas, pagos, streaming en tiempo real, análisis de video o de diapositivas, diarización de varios hablantes, apps nativas distintas de Flutter, despliegue en producción con balanceo.
+Fuera del MVP (no construir): autenticación real con contraseñas, pagos, streaming en tiempo real, análisis de video o de diapositivas, diarización de varios hablantes, apps nativas distintas de Flutter, despliegue en producción con balanceo, y el clasificador acústico de eventos (T10, T11), aplazado como mejora futura el 2026-10-23 (D-11).
 
 ## Cómo se organiza el trabajo
 
