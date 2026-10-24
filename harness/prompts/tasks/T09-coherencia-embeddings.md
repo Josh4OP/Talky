@@ -1,12 +1,12 @@
 ---
 id: T09
 title: Coherencia temática con embeddings de texto
-status: todo
+status: done
 phase: 2-inteligencia
 depends_on: [T02, T04]
 requirements: [RF-05]
 estimate: 4h
-tests: [tests/unit/test_coherence.py]
+tests: [tests/unit/test_coherence.py, tests/unit/test_coherence_rules.py]
 touches: [src/application/services/coherence.py, src/infrastructure/ml/sentence_embedder.py]
 ---
 # T09 - Coherencia temática con embeddings de texto
