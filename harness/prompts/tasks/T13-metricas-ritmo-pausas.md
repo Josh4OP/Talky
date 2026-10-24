@@ -1,12 +1,12 @@
 ---
 id: T13
 title: Métricas de ritmo y pausas por palabra
-status: todo
+status: done
 phase: 2-inteligencia
 depends_on: [T02]
 requirements: [RF-09, RNF-03]
 estimate: 2h
-tests: [tests/unit/test_metrics.py]
+tests: [tests/unit/test_metrics.py, tests/unit/test_metrics_rules.py]
 touches: [src/application/services/metrics.py]
 ---
 # T13 - Métricas de ritmo y pausas por palabra
