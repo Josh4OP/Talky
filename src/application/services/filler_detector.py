@@ -19,6 +19,14 @@ _PAUSE = re.compile(r"\s*(?:,|;|\.\.\.|…|—|–)")
 _SENTENCE_END = re.compile(r"\s*(?:[.!?…]|$)")
 _SENTENCE_OPENERS = " \t\n¿¡\"'«"
 _SENTENCE_CLOSERS = ".!?…"
+_VOCAL_TOKENS = {key: re.compile(variants) for key, variants in VOCAL_FILLERS.items()}
+_EDGE_PUNCTUATION = re.compile(r"^\W+|\W+$")
+
+
+def vocal_filler_key(token: str) -> str | None:
+    """Clave canónica ("eh" o "mmm") si la palabra suelta es una muletilla vocal; si no, None."""
+    word = _EDGE_PUNCTUATION.sub("", token.lower())
+    return next((key for key, pattern in _VOCAL_TOKENS.items() if pattern.fullmatch(word)), None)
 
 
 def _phrase_pattern(phrase: str) -> re.Pattern[str]:
