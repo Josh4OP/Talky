@@ -1,12 +1,12 @@
 ---
 id: T15
 title: API v1: aplicación FastAPI, rutas e historial
-status: todo
+status: done
 phase: 3-integracion
 depends_on: [T14]
 requirements: [RF-01, RF-02, RF-07, RF-08, RNF-01, RNF-04]
 estimate: 4h
-tests: [tests/api/test_routes.py, tests/e2e/test_pipeline_fake.py]
+tests: [tests/api/test_routes.py, tests/e2e/test_pipeline_fake.py, tests/api/test_routes_rules.py]
 touches: [src/presentation/app.py, src/presentation/routes/analysis.py, main.py]
 ---
 # T15 - API v1: aplicación FastAPI, rutas e historial
