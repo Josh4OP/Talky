@@ -59,3 +59,10 @@ python -m pytest tests/unit/test_event_fusion.py -q
 - [ ] `/review` sin bloqueantes.
 - [ ] Estado actualizado: `python harness/tools/tasks.py status T12 done`.
 - [ ] Commit(s) convencional(es) `tipo(T12): descripción`.
+
+
+## D-11: Clasificador acústico aplazado como mejora futura
+
+- Contexto: el plazo del MVP (lunes 26 de octubre de 2026) no alcanza para grabar y etiquetar datos de eventos, entrenar el Random Forest y medirlo con validación por hablante.
+- Decisión: T10 y T11 (y los puntos acústicos de T17) se aplazan. `ENABLE_EVENT_CLASSIFIER` queda apagada. T12 se conserva porque funciona solo con palabras de Whisper. T17 se reduce a medir detector de muletillas, transcripción y verificación de citas.
+- Consecuencias: el informe presenta el clasificador como trabajo futuro, sin afirmar resultados no medidos. Para retomarlo se restaura la dependencia de T11 en T17 y los puntos acústicos de su alcance.

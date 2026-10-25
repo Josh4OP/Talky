@@ -21,7 +21,7 @@ Checklists en `harness/checklists/definition-of-done.md` y `harness/checklists/d
 
 ## Alcance
 
-1. README final: qué es, arquitectura en un diagrama, instalación mínima y completa (con ML y embeddings), variables de entorno, cómo correr pruebas, cómo usar la API con `curl`, cómo entrenar el clasificador, cómo correr la app, aviso de privacidad, limitaciones conocidas (identidad declarada, cuotas de Groq, tamaño de los datos).
+1. README final: qué es, arquitectura en un diagrama, instalación mínima y completa (con ML y embeddings), variables de entorno, cómo correr pruebas, cómo usar la API con `curl`, clasificador acustico como trabajo futuro, cómo correr la app, aviso de privacidad, limitaciones conocidas (identidad declarada, cuotas de Groq, tamaño de los datos).
 2. `docs/arquitectura.md`: diagramas Mermaid de capas, flujo de una petición y degradación; decisiones principales (resumen de `harness/context/12-decisions.md`).
 3. `docs/guia-demo.md` y `scripts/demo.sh`: guion de 5 minutos, audio de ejemplo propio de una persona que dio su permiso, y comandos para levantar API y app.
 4. Endurecimiento: revisar que no se registre contenido de usuario, que los mensajes de error sean claros, que el tiempo de espera de red sea explícito, que CORS esté documentado, que `.env.example` esté completo y sin valores reales.
