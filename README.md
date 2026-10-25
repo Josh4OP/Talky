@@ -102,6 +102,20 @@ La API queda en `http://127.0.0.1:8000` y la documentación interactiva en `http
 
 Para producción, restringe `CORS_ORIGINS` a los orígenes de la app (nunca `*`) y sirve la API detrás de HTTPS.
 
+## 8.1 Ejecutar la app Flutter
+
+```bash
+cd mobile
+flutter pub get
+flutter run -d edge --dart-define=API_BASE_URL=http://127.0.0.1:8000
+```
+
+- `API_BASE_URL` cambia la dirección de la API sin tocar código. Por defecto es `http://10.0.2.2:8000`, que es el host visto desde el emulador de Android.
+- Para un teléfono físico, usa la IP de tu equipo en la red local (por ejemplo `http://192.168.1.20:8000`).
+- La app abre con una pantalla de bienvenida. Si el servidor no está corriendo, puedes activar el **modo demostración** en Perfil: los datos de ejemplo se marcan siempre como tales y nunca se mezclan con tu historial.
+- Android ya declara `INTERNET` y `RECORD_AUDIO`; iOS declara `NSMicrophoneUsageDescription`. En la web el micrófono requiere HTTPS o `localhost`.
+- Verificación: `flutter analyze` y `flutter test` (20 pruebas) desde `mobile/`.
+
 ## 9. Privacidad
 
 - El audio de la exposición se envía a Groq para transcribirse, y la transcripción se envía a los proveedores de LLM configurados (Groq y, si se activa, Gemini). Si se usa el modo `local`, la transcripción se hace en tu equipo.
