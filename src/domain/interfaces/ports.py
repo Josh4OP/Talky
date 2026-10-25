@@ -46,6 +46,13 @@ class AnalysisSummary:
     total_muletillas: int
 
 
+@dataclass(frozen=True)
+class IssuedToken:
+    access_token: str = field(repr=False)
+    subject: str
+    expires_in: int
+
+
 class Transcriber(ABC):
     @abstractmethod
     def transcribe(self, audio_path: str) -> Transcription: ...
@@ -83,3 +90,11 @@ class AnalysisRepository(ABC):
 
     @abstractmethod
     def delete(self, user_id: str, analysis_id: str) -> bool: ...
+
+
+class TokenService(ABC):
+    @abstractmethod
+    def issue(self, subject: str) -> IssuedToken: ...
+
+    @abstractmethod
+    def verify(self, token: str) -> str: ...

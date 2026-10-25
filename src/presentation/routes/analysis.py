@@ -9,6 +9,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, Response, UploadFile
 
 from src.domain.exceptions import InvalidAudioError
+from src.presentation.routes.auth import bearer_user
 
 logger = logging.getLogger("talky.api")
 
@@ -34,6 +35,13 @@ def user_id(x_user_id: str | None = Header(default=None, alias="X-User-Id")) -> 
     if not USER_ID_PATTERN.fullmatch(x_user_id):
         raise HTTPException(400, INVALID_USER)
     return x_user_id
+
+
+def _identity(container):
+    """En modo jwt la identidad sale del token; en modo header, de X-User-Id."""
+    if container.settings.auth_mode == "jwt":
+        return bearer_user(container.token_service)
+    return user_id
 
 
 def _too_large(max_mb: int) -> HTTPException:
@@ -67,9 +75,10 @@ def build_router(container) -> APIRouter:
     use_case = container.use_case
     repository = container.repository
     max_mb = container.settings.max_upload_mb
+    identity = _identity(container)
 
     @router.post("/analyses", status_code=201)
-    def create_analysis(file: UploadFile = File(...), user: str = Depends(user_id)) -> dict:
+    def create_analysis(file: UploadFile = File(...), user: str = Depends(identity)) -> dict:
         filename = Path(file.filename or "audio").name[:_MAX_FILENAME]
         suffix = Path(filename).suffix.lower()
         if suffix not in ALLOWED_EXTENSIONS:
@@ -96,7 +105,7 @@ def build_router(container) -> APIRouter:
 
     @router.get("/analyses")
     def list_analyses(
-        user: str = Depends(user_id),
+        user: str = Depends(identity),
         limit: int = Query(20, ge=1, le=100),
         offset: int = Query(0, ge=0),
     ) -> dict:
@@ -104,14 +113,14 @@ def build_router(container) -> APIRouter:
         return {"items": items, "total": repository.count(user), "limit": limit, "offset": offset}
 
     @router.get("/analyses/{analysis_id}")
-    def get_analysis(analysis_id: str, user: str = Depends(user_id)) -> dict:
+    def get_analysis(analysis_id: str, user: str = Depends(identity)) -> dict:
         stored = repository.get(user, analysis_id)
         if stored is None:
             raise HTTPException(404, NOT_FOUND)
         return _public(stored)
 
     @router.delete("/analyses/{analysis_id}", status_code=204)
-    def delete_analysis(analysis_id: str, user: str = Depends(user_id)) -> Response:
+    def delete_analysis(analysis_id: str, user: str = Depends(identity)) -> Response:
         if not repository.delete(user, analysis_id):
             raise HTTPException(404, NOT_FOUND)
         return Response(status_code=204)

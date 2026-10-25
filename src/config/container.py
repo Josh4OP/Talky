@@ -14,7 +14,14 @@ from src.application.use_cases.analyze_presentation import AnalyzePresentation
 from src.config.settings import ENDPOINTS, ProviderConfig, Settings
 from src.domain.entities.analysis import Analisis, Sintesis
 from src.domain.exceptions import ConfigurationError
-from src.domain.interfaces.ports import AnalysisRepository, EventClassifier, LLMProvider, TextEmbedder, Transcriber
+from src.domain.interfaces.ports import (
+    AnalysisRepository,
+    EventClassifier,
+    LLMProvider,
+    TextEmbedder,
+    TokenService,
+    Transcriber,
+)
 
 logger = logging.getLogger("talky.config")
 
@@ -23,6 +30,8 @@ _LLM_MAX_RETRIES = 2
 _WHISPER_MAX_RETRIES = 1
 _GROQ_UPLOAD_LIMIT = 25 * 1024 * 1024
 _STRICT_MODEL_MARKERS = ("gpt-oss", "qwen")
+# Se valida aquí, antes de importar PyJWT, para que el error de configuración sea claro aunque falte la librería.
+_MIN_JWT_SECRET_CHARS = 32
 
 NO_LLM = (
     "No hay ningún LLM configurado. Define GROQ_API_KEY y GROQ_MODEL (o GEMINI_API_KEY y GEMINI_MODEL, u OLLAMA_MODEL)."
@@ -40,6 +49,7 @@ NO_EMBEDDINGS = (
     "La coherencia temática está desactivada: falta sentence-transformers (instala requirements-embeddings.txt)."
 )
 NO_EVENT_MODEL = "El análisis de eventos acústicos está desactivado: no se encontró el modelo entrenado."
+JWT_SECRET_REQUIRED = f"AUTH_MODE=jwt requiere JWT_SECRET de al menos {_MIN_JWT_SECRET_CHARS} caracteres."
 NO_EVENT_CLASSIFIER = (
     "El análisis de eventos acústicos está desactivado: el clasificador no está disponible en esta versión."
 )
@@ -51,6 +61,7 @@ class Container:
     use_case: AnalyzePresentation
     repository: AnalysisRepository
     warnings: list[str] = field(default_factory=list)
+    token_service: TokenService | None = None
 
 
 def select_judge(providers: list[LLMProvider], name: str) -> LLMProvider:
@@ -190,6 +201,18 @@ def _repository(settings: Settings, provided: AnalysisRepository | None) -> Anal
     return SqliteAnalysisRepository(settings.db_path)
 
 
+def _token_service(settings: Settings, provided: TokenService | None) -> TokenService | None:
+    if settings.auth_mode != "jwt":
+        return None
+    if provided is not None:
+        return provided
+    if len(settings.jwt_secret) < _MIN_JWT_SECRET_CHARS:
+        raise ConfigurationError(JWT_SECRET_REQUIRED)
+    from src.infrastructure.security.jwt_tokens import JwtTokenService
+
+    return JwtTokenService(settings.jwt_secret, settings.jwt_ttl_days * 86400)
+
+
 def build_container(
     settings: Settings,
     *,
@@ -198,8 +221,10 @@ def build_container(
     embedder: TextEmbedder | None = None,
     event_classifier: EventClassifier | None = None,
     repository: AnalysisRepository | None = None,
+    token_service: TokenService | None = None,
 ) -> Container:
     warnings: list[str] = []
+    tokens = _token_service(settings, token_service)
     ensemble = _ensemble(settings, llm_providers)
     use_case = AnalyzePresentation(
         transcriber if transcriber is not None else _transcriber(settings, warnings),
@@ -211,4 +236,4 @@ def build_container(
     )
     for warning in warnings:
         logger.warning(warning)
-    return Container(settings, use_case, _repository(settings, repository), warnings)
+    return Container(settings, use_case, _repository(settings, repository), warnings, tokens)

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.presentation.routes.analysis import build_router
+from src.presentation.routes.auth import build_auth_router
 
 
 def create_app(container) -> FastAPI:
@@ -15,6 +16,8 @@ def create_app(container) -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(build_router(container))
+    if container.settings.auth_mode == "jwt":
+        app.include_router(build_auth_router(container.token_service))
     use_case = container.use_case
 
     @app.get("/health")
