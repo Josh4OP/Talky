@@ -1,13 +1,13 @@
 ---
 id: T12
 title: Fusión de muletillas: palabras de Whisper y eventos acústicos
-status: todo
+status: done
 phase: 2-inteligencia
 depends_on: [T02, T03]
 requirements: [RF-04, RF-10]
 estimate: 3h
-tests: [tests/unit/test_event_fusion.py]
-touches: [src/application/services/event_fusion.py]
+tests: [tests/unit/test_event_fusion.py, tests/unit/test_event_fusion_rules.py]
+touches: [src/application/services/event_fusion.py, src/application/services/filler_detector.py]
 ---
 # T12 - Fusión de muletillas: palabras de Whisper y eventos acústicos
 
