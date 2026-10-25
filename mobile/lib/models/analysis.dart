@@ -1,403 +1,186 @@
-import 'dart:math' as math;
-
-import 'analysis_summary.dart';
-
-/// Resultado completo devuelto por `POST /analyses` y `GET /analyses/{id}`.
-///
-/// Todos los bloques opcionales se dejan en `null` cuando la API no los envía
-/// o cuando la etapa correspondiente está apagada. La interfaz decide qué
-/// secciones mostrar; nunca se inventan valores.
+/// Resultado completo de `POST /analyses` y `GET /analyses/{id}` (ver `07-api-contract.md`).
+/// Toda sección opcional es `null` cuando la API no la envía; la pantalla la oculta.
 class Analysis {
   const Analysis({
     required this.id,
     required this.createdAt,
-    required this.duracionS,
-    required this.ppm,
-    required this.ritmo,
-    required this.pausas,
-    required this.muletillas,
-    required this.muletillasPorMinuto,
-    required this.transcripcionRecortada,
-    required this.coherencia,
-    required this.eventosAcusticos,
-    required this.advertencias,
-    required this.modelosUsados,
-    required this.modelosFallidos,
-    required this.puntajes,
-    required this.sintesis,
-    required this.evidencias,
-    required this.verificacion,
-    required this.porModelo,
-    this.isDemo = false,
+    required this.durationS,
+    required this.wordsPerMinute,
+    required this.rhythm,
+    required this.pauses,
+    required this.fillers,
+    required this.fillersPerMinute,
+    required this.transcriptTrimmed,
+    required this.coherence,
+    required this.acousticEvents,
+    required this.warnings,
+    required this.scores,
+    required this.synthesis,
+    required this.evidences,
+    required this.verification,
   });
 
   final String id;
   final DateTime? createdAt;
-  final double? duracionS;
-  final double? ppm;
-  final List<double> ritmo;
-  final PauseStats? pausas;
-  final Map<String, int> muletillas;
-  final double? muletillasPorMinuto;
-  final bool transcripcionRecortada;
-  final Coherence? coherencia;
-  final AcousticEvents? eventosAcusticos;
-  final List<String> advertencias;
-  final List<String> modelosUsados;
-  final Map<String, dynamic> modelosFallidos;
-  final Map<String, ScoreStat> puntajes;
-  final Synthesis? sintesis;
-  final List<Evidence> evidencias;
-  final Verification? verificacion;
-  final Map<String, dynamic> porModelo;
+  final double? durationS;
+  final double? wordsPerMinute;
+  final List<double> rhythm;
+  final Pauses? pauses;
 
-  /// Solo es `true` para datos de ejemplo generados localmente.
-  final bool isDemo;
+  /// Conteo por muletilla, de mayor a menor como lo entrega la API.
+  final Map<String, int> fillers;
+  final double? fillersPerMinute;
+  final bool transcriptTrimmed;
+  final Coherence? coherence;
+  final AcousticEvents? acousticEvents;
+  final List<String> warnings;
+  final Map<String, Score> scores;
+  final Synthesis? synthesis;
+  final List<Evidence> evidences;
+  final Verification? verification;
 
-  int get totalMuletillas =>
-      muletillas.values.fold(0, (sum, value) => sum + value);
+  int get totalFillers => fillers.values.fold(0, (a, b) => a + b);
 
-  List<MapEntry<String, int>> get muletillasOrdenadas {
-    final entries = muletillas.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return entries;
-  }
-
-  bool get tieneSintesis =>
-      sintesis != null &&
-      (sintesis!.resumen.isNotEmpty ||
-          sintesis!.fortalezas.isNotEmpty ||
-          sintesis!.aspectosPorMejorar.isNotEmpty ||
-          sintesis!.recomendaciones.isNotEmpty);
-
-  factory Analysis.fromJson(Map<String, dynamic> json) {
-    final rawPauses = _map(json['pausas']);
-    final rawCoherence = _map(json['coherencia']);
-    final rawEvents = _map(json['eventos_acusticos']);
-    final rawSynthesis = _map(json['sintesis']);
-    final rawScores = _map(json['puntajes']);
-    final rawVerification = _map(json['verificacion']);
-
-    return Analysis(
-      id: _string(json['id']) ?? '',
-      createdAt: _date(json['creado_en'] ?? json['created_at']),
-      duracionS: _double(json['duracion_s']),
-      ppm: _double(json['ppm']),
-      ritmo: _doubleList(json['ritmo']),
-      pausas: rawPauses == null ? null : PauseStats.fromJson(rawPauses),
-      muletillas: _intMap(json['muletillas']),
-      muletillasPorMinuto: _double(json['muletillas_por_minuto']),
-      transcripcionRecortada: json['transcripcion_recortada'] == true,
-      coherencia: rawCoherence == null ? null : Coherence.fromJson(rawCoherence),
-      eventosAcusticos:
-          rawEvents == null ? null : AcousticEvents.fromJson(rawEvents),
-      advertencias: _stringList(json['advertencias']),
-      modelosUsados: _stringList(json['modelos_usados']),
-      modelosFallidos: _map(json['modelos_fallidos']) ?? const {},
-      puntajes: rawScores?.map(
-            (key, value) => MapEntry(
-              key,
-              ScoreStat.fromJson(_map(value) ?? const {}),
-            ),
-          ) ??
-          const {},
-      sintesis: rawSynthesis == null ? null : Synthesis.fromJson(rawSynthesis),
-      evidencias: _list(json['evidencias'])
-          .whereType<Map>()
-          .map((item) => Evidence.fromJson(Map<String, dynamic>.from(item)))
-          .toList(growable: false),
-      verificacion: rawVerification == null
-          ? null
-          : Verification.fromJson(rawVerification),
-      porModelo: _map(json['por_modelo']) ?? const {},
-    );
-  }
+  factory Analysis.fromJson(Map<String, dynamic> json) => Analysis(
+    id: json['id'] as String? ?? '',
+    createdAt: DateTime.tryParse(json['creado_en'] as String? ?? ''),
+    durationS: _double(json['duracion_s']),
+    wordsPerMinute: _double(json['ppm']),
+    rhythm: [for (final v in json['ritmo'] as List? ?? const []) ?_double(v)],
+    pauses: _map(json['pausas'], Pauses.fromJson),
+    fillers: {
+      for (final e in (json['muletillas'] as Map? ?? const {}).entries) e.key as String: (e.value as num).toInt(),
+    },
+    fillersPerMinute: _double(json['muletillas_por_minuto']),
+    transcriptTrimmed: json['transcripcion_recortada'] as bool? ?? false,
+    coherence: _map(json['coherencia'], Coherence.fromJson),
+    acousticEvents: _map(json['eventos_acusticos'], AcousticEvents.fromJson),
+    warnings: [for (final w in json['advertencias'] as List? ?? const []) w.toString()],
+    scores: {
+      for (final e in (json['puntajes'] as Map? ?? const {}).entries)
+        if (e.value is Map) e.key as String: Score.fromJson(Map<String, dynamic>.from(e.value as Map)),
+    },
+    synthesis: _map(json['sintesis'], Synthesis.fromJson),
+    evidences: [
+      for (final e in json['evidencias'] as List? ?? const [])
+        if (e is Map) Evidence.fromJson(Map<String, dynamic>.from(e)),
+    ],
+    verification: _map(json['verificacion'], Verification.fromJson),
+  );
 }
 
-class AnalysisPage {
-  const AnalysisPage({
-    required this.items,
-    required this.total,
-    required this.limit,
-    required this.offset,
+class Pauses {
+  const Pauses({
+    required this.longPauses,
+    required this.secondsInPauses,
+    required this.longestS,
+    required this.perMinute,
   });
 
-  final List<AnalysisSummary> items;
-  final int total;
-  final int limit;
-  final int offset;
+  final int longPauses;
+  final double secondsInPauses;
+  final double longestS;
+  final double perMinute;
 
-  factory AnalysisPage.fromJson(Map<String, dynamic> json) {
-    return AnalysisPage(
-      items: _list(json['items'])
-          .whereType<Map>()
-          .map((item) => AnalysisSummary.fromJson(Map<String, dynamic>.from(item)))
-          .toList(growable: false),
-      total: _int(json['total']) ?? 0,
-      limit: _int(json['limit']) ?? 20,
-      offset: _int(json['offset']) ?? 0,
-    );
-  }
+  factory Pauses.fromJson(Map<String, dynamic> json) => Pauses(
+    longPauses: (json['pausas_largas'] as num? ?? 0).toInt(),
+    secondsInPauses: _double(json['segundos_en_pausas']) ?? 0,
+    longestS: _double(json['pausa_maxima_s']) ?? 0,
+    perMinute: _double(json['pausas_por_minuto']) ?? 0,
+  );
 }
 
-class PauseStats {
-  const PauseStats({
-    required this.pausasLargas,
-    required this.segundosEnPausas,
-    required this.pausaMaximaS,
-    required this.pausasPorMinuto,
-  });
+class Coherence {
+  const Coherence({required this.topicJumps, required this.repeatedPairs});
 
-  final int? pausasLargas;
-  final double? segundosEnPausas;
-  final double? pausaMaximaS;
-  final double? pausasPorMinuto;
+  final int topicJumps;
+  final int repeatedPairs;
 
-  factory PauseStats.fromJson(Map<String, dynamic> json) => PauseStats(
-        pausasLargas: _int(json['pausas_largas']),
-        segundosEnPausas: _double(json['segundos_en_pausas']),
-        pausaMaximaS: _double(json['pausa_maxima_s']),
-        pausasPorMinuto: _double(json['pausas_por_minuto']),
-      );
+  factory Coherence.fromJson(Map<String, dynamic> json) => Coherence(
+    topicJumps: (json['topic_jumps'] as List? ?? const []).length,
+    repeatedPairs: (json['repeated_pairs'] as List? ?? const []).length,
+  );
 }
 
-class ScoreStat {
-  const ScoreStat({
-    required this.mediana,
-    required this.min,
-    required this.max,
-    required this.desacuerdo,
-  });
+class AcousticEvent {
+  const AcousticEvent({required this.startS, required this.label});
 
-  final double? mediana;
-  final double? min;
-  final double? max;
-  final bool desacuerdo;
+  final double startS;
+  final String label;
+}
 
-  factory ScoreStat.fromJson(Map<String, dynamic> json) => ScoreStat(
-        mediana: _double(json['mediana']),
-        min: _double(json['min']),
-        max: _double(json['max']),
-        desacuerdo: json['desacuerdo'] == true,
-      );
+class AcousticEvents {
+  const AcousticEvents({required this.fillers, required this.hums});
+
+  final List<AcousticEvent> fillers;
+  final List<AcousticEvent> hums;
+
+  factory AcousticEvents.fromJson(Map<String, dynamic> json) => AcousticEvents(
+    fillers: [
+      for (final e in json['muletillas'] as List? ?? const [])
+        if (e is Map) AcousticEvent(startS: _double(e['start']) ?? 0, label: e['texto']?.toString() ?? 'muletilla'),
+    ],
+    hums: [
+      for (final e in json['tarareos'] as List? ?? const [])
+        if (e is Map) AcousticEvent(startS: _double(e['start']) ?? 0, label: 'tarareo'),
+    ],
+  );
+}
+
+class Score {
+  const Score({required this.median, required this.disagreement});
+
+  final double median;
+  final bool disagreement;
+
+  factory Score.fromJson(Map<String, dynamic> json) =>
+      Score(median: _double(json['mediana']) ?? 0, disagreement: json['desacuerdo'] as bool? ?? false);
 }
 
 class Synthesis {
   const Synthesis({
-    required this.resumen,
-    required this.fortalezas,
-    required this.aspectosPorMejorar,
-    required this.recomendaciones,
+    required this.summary,
+    required this.strengths,
+    required this.improvements,
+    required this.recommendations,
   });
 
-  final String resumen;
-  final List<String> fortalezas;
-  final List<String> aspectosPorMejorar;
-  final List<String> recomendaciones;
+  final String summary;
+  final List<String> strengths;
+  final List<String> improvements;
+  final List<String> recommendations;
 
   factory Synthesis.fromJson(Map<String, dynamic> json) => Synthesis(
-        resumen: _string(json['resumen']) ?? '',
-        fortalezas: _stringList(json['fortalezas']),
-        aspectosPorMejorar: _stringList(json['aspectos_por_mejorar']),
-        recomendaciones: _stringList(json['recomendaciones']),
-      );
+    summary: json['resumen']?.toString() ?? '',
+    strengths: _strings(json['fortalezas']),
+    improvements: _strings(json['aspectos_por_mejorar']),
+    recommendations: _strings(json['recomendaciones']),
+  );
 }
 
 class Evidence {
-  const Evidence({
-    required this.afirmacion,
-    required this.cita,
-    required this.verificada,
-  });
+  const Evidence({required this.claim, required this.quote});
 
-  final String afirmacion;
-  final String cita;
-  final bool verificada;
+  final String claim;
+  final String quote;
 
-  factory Evidence.fromJson(Map<String, dynamic> json) => Evidence(
-        afirmacion: _string(json['afirmacion']) ?? '',
-        cita: _string(json['cita']) ?? '',
-        verificada: json['verificada'] == true,
-      );
+  factory Evidence.fromJson(Map<String, dynamic> json) =>
+      Evidence(claim: json['afirmacion']?.toString() ?? '', quote: json['cita']?.toString() ?? '');
 }
 
 class Verification {
-  const Verification({required this.tasa, required this.descartadas});
+  const Verification({required this.rate, required this.discarded});
 
-  final double? tasa;
-  final int? descartadas;
+  final double? rate;
+  final int discarded;
 
-  factory Verification.fromJson(Map<String, dynamic> json) => Verification(
-        tasa: _double(json['tasa']),
-        descartadas: _int(json['descartadas']),
-      );
+  factory Verification.fromJson(Map<String, dynamic> json) =>
+      Verification(rate: _double(json['tasa']), discarded: (json['descartadas'] as num? ?? 0).toInt());
 }
 
-class Coherence {
-  const Coherence({
-    required this.windows,
-    required this.meanAdjacentSimilarity,
-    required this.topicJumps,
-    required this.repeatedPairs,
-  });
+double? _double(Object? value) => value is num ? value.toDouble() : null;
 
-  final int? windows;
-  final double? meanAdjacentSimilarity;
-  final List<int> topicJumps;
-  final List<RepeatedPair> repeatedPairs;
+List<String> _strings(Object? value) => [for (final v in value as List? ?? const []) v.toString()];
 
-  factory Coherence.fromJson(Map<String, dynamic> json) => Coherence(
-        windows: _int(json['windows']),
-        meanAdjacentSimilarity: _double(json['mean_adjacent_similarity']),
-        topicJumps: _intList(json['topic_jumps']),
-        repeatedPairs: _list(json['repeated_pairs'])
-            .whereType<Map>()
-            .map((item) => RepeatedPair.fromJson(Map<String, dynamic>.from(item)))
-            .toList(growable: false),
-      );
-}
-
-class RepeatedPair {
-  const RepeatedPair({required this.a, required this.b, required this.similarity});
-
-  final int? a;
-  final int? b;
-  final double? similarity;
-
-  factory RepeatedPair.fromJson(Map<String, dynamic> json) => RepeatedPair(
-        a: _int(json['a']),
-        b: _int(json['b']),
-        similarity: _double(json['similarity']),
-      );
-}
-
-class AcousticEvents {
-  const AcousticEvents({required this.muletillas, required this.tarareos});
-
-  final List<AcousticFiller> muletillas;
-  final List<HumEvent> tarareos;
-
-  bool get isEmpty => muletillas.isEmpty && tarareos.isEmpty;
-
-  factory AcousticEvents.fromJson(Map<String, dynamic> json) => AcousticEvents(
-        muletillas: _list(json['muletillas'])
-            .whereType<Map>()
-            .map((item) => AcousticFiller.fromJson(Map<String, dynamic>.from(item)))
-            .toList(growable: false),
-        tarareos: _list(json['tarareos'])
-            .whereType<Map>()
-            .map((item) => HumEvent.fromJson(Map<String, dynamic>.from(item)))
-            .toList(growable: false),
-      );
-}
-
-class AcousticFiller {
-  const AcousticFiller({
-    required this.start,
-    required this.end,
-    required this.texto,
-    required this.source,
-    required this.confianza,
-  });
-
-  final double? start;
-  final double? end;
-  final String texto;
-  final String source;
-  final String confianza;
-
-  factory AcousticFiller.fromJson(Map<String, dynamic> json) => AcousticFiller(
-        start: _double(json['start']),
-        end: _double(json['end']),
-        texto: _string(json['texto']) ?? 'muletilla',
-        source: _string(json['source']) ?? '',
-        confianza: _string(json['confianza']) ?? '',
-      );
-}
-
-class HumEvent {
-  const HumEvent({required this.start, required this.end, required this.confidence});
-
-  final double? start;
-  final double? end;
-  final double? confidence;
-
-  factory HumEvent.fromJson(Map<String, dynamic> json) => HumEvent(
-        start: _double(json['start']),
-        end: _double(json['end']),
-        confidence: _double(json['confidence']),
-      );
-}
-
-/// Utilidades de lectura defensiva del JSON.
-String? _string(Object? value) {
-  if (value == null) return null;
-  final text = value.toString().trim();
-  return text.isEmpty ? null : text;
-}
-
-double? _double(Object? value) {
-  if (value is num) {
-    final number = value.toDouble();
-    return number.isFinite ? number : null;
-  }
-  if (value is String) return double.tryParse(value.replaceAll(',', '.'));
-  return null;
-}
-
-int? _int(Object? value) {
-  if (value is int) return value;
-  if (value is num) return value.round();
-  if (value is String) return int.tryParse(value);
-  return null;
-}
-
-DateTime? _date(Object? value) {
-  if (value == null) return null;
-  return DateTime.tryParse(value.toString());
-}
-
-Map<String, dynamic>? _map(Object? value) {
-  if (value is Map<String, dynamic>) return value;
-  if (value is Map) return Map<String, dynamic>.from(value);
-  return null;
-}
-
-List<dynamic> _list(Object? value) => value is List ? value : const [];
-
-List<String> _stringList(Object? value) => _list(value)
-    .map(_string)
-    .whereType<String>()
-    .toList(growable: false);
-
-List<double> _doubleList(Object? value) => _list(value)
-    .map(_double)
-    .whereType<double>()
-    .toList(growable: false);
-
-List<int> _intList(Object? value) =>
-    _list(value).map(_int).whereType<int>().toList(growable: false);
-
-Map<String, int> _intMap(Object? value) {
-  final map = _map(value);
-  if (map == null) return const {};
-  final result = <String, int>{};
-  for (final entry in map.entries) {
-    final number = _int(entry.value);
-    if (number != null) result[entry.key] = number;
-  }
-  return result;
-}
-
-/// Promedio simple del ritmo ignorando las ventanas en cero que puede dejar
-/// el último tramo de silencio (riesgo documentado en el backend).
-double? averagePpm(List<double> values) {
-  final valid = values.where((value) => value > 0).toList();
-  if (valid.isEmpty) return null;
-  return valid.reduce((a, b) => a + b) / valid.length;
-}
-
-double? clampScore(num? value) {
-  if (value == null) return null;
-  return math.min(10, math.max(0, value.toDouble()));
-}
+T? _map<T>(Object? value, T Function(Map<String, dynamic>) parse) =>
+    value is Map ? parse(Map<String, dynamic>.from(value)) : null;

@@ -1,178 +1,89 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
 import '../models/analysis.dart';
+import '../models/analysis_summary.dart';
 import 'api_exception.dart';
 import 'config.dart';
+import 'session_store.dart';
 
-/// Cliente delgado de la API v1. No procesa audio: solo lo envía y lee el
-/// resultado. Cada petición identificada lleva `X-User-Id`.
+/// Audio elegido por la persona. `open` crea un flujo nuevo cada vez, para poder reintentar el envío.
+class AudioUpload {
+  const AudioUpload({required this.name, required this.sizeBytes, required this.open});
+
+  final String name;
+  final int sizeBytes;
+  final Stream<List<int>> Function() open;
+}
+
+/// Cliente de la API v1 con sesión Bearer (T19). Ante un 401 renueva la sesión una vez y repite.
 class ApiClient {
-  ApiClient({
-    required String baseUrl,
-    required this.userId,
-    http.Client? client,
-    Duration? timeout,
-  })  : baseUrl = baseUrl.replaceFirst(RegExp(r'/+$'), ''),
-        _client = client ?? http.Client(),
-        _timeout = timeout ?? AppConfig.requestTimeout;
+  ApiClient({required http.Client client, required Uri baseUrl, required SessionStore session})
+    : _client = client,
+      _baseUrl = baseUrl,
+      _session = session;
 
-  final String baseUrl;
-  final String userId;
   final http.Client _client;
-  final Duration _timeout;
+  final Uri _baseUrl;
+  final SessionStore _session;
 
-  Uri _uri(String path, [Map<String, String>? query]) =>
-      Uri.parse('$baseUrl$path').replace(queryParameters: query);
+  SessionStore get session => _session;
 
-  Map<String, String> get _identityHeaders => {'X-User-Id': userId};
-
-  Future<Analysis> uploadAnalysis({
-    required Uint8List bytes,
-    required String filename,
-  }) async {
-    final request = http.MultipartRequest('POST', _uri('/analyses'))
-      ..headers.addAll(_identityHeaders)
-      ..files.add(
-        http.MultipartFile.fromBytes('file', bytes, filename: filename),
-      );
-
-    final response = await _send(request);
-    _ensure(response, expected: 201);
-    return Analysis.fromJson(_decode(response));
+  Future<void> health() async {
+    final response = await _guard(() => _client.get(_baseUrl.resolve('/health')), AppConfig.requestTimeout);
+    if (response.statusCode != 200) throw ApiException.fromResponse(response.statusCode, response.body);
   }
 
-  Future<AnalysisPage> fetchHistory({int limit = 20, int offset = 0}) async {
-    final response = await _get(
-      _uri('/analyses', {
-        'limit': limit.clamp(1, 100).toString(),
-        'offset': offset.toString(),
-      }),
-    );
-    _ensure(response, expected: 200);
-    return AnalysisPage.fromJson(_decode(response));
+  Future<Analysis> analyze(AudioUpload audio) async {
+    final response = await _authorized((token) async {
+      final request = http.MultipartRequest('POST', _baseUrl.resolve('/analyses'))
+        ..headers['Authorization'] = 'Bearer $token'
+        ..files.add(http.MultipartFile('file', audio.open(), audio.sizeBytes, filename: audio.name));
+      return http.Response.fromStream(await _client.send(request));
+    }, AppConfig.analyzeTimeout);
+    return Analysis.fromJson(_json(response, 201));
   }
 
-  Future<Analysis> fetchAnalysis(String id) async {
-    final response = await _get(
-      _uri('/analyses/${Uri.encodeComponent(id)}'),
-    );
-    _ensure(response, expected: 200);
-    return Analysis.fromJson(_decode(response));
+  Future<HistoryPage> listAnalyses({int limit = 20, int offset = 0}) async {
+    final uri = _baseUrl.resolve('/analyses').replace(queryParameters: {'limit': '$limit', 'offset': '$offset'});
+    final response = await _authorized((token) => _client.get(uri, headers: _auth(token)), AppConfig.requestTimeout);
+    return HistoryPage.fromJson(_json(response, 200));
+  }
+
+  Future<Analysis> getAnalysis(String id) async {
+    final uri = _baseUrl.resolve('/analyses/${Uri.encodeComponent(id)}');
+    final response = await _authorized((token) => _client.get(uri, headers: _auth(token)), AppConfig.requestTimeout);
+    return Analysis.fromJson(_json(response, 200));
   }
 
   Future<void> deleteAnalysis(String id) async {
-    final request = http.Request(
-      'DELETE',
-      _uri('/analyses/${Uri.encodeComponent(id)}'),
-    )..headers.addAll(_identityHeaders);
-    final response = await _send(request);
-    _ensure(response, expected: 204);
+    final uri = _baseUrl.resolve('/analyses/${Uri.encodeComponent(id)}');
+    final response = await _authorized((token) => _client.delete(uri, headers: _auth(token)), AppConfig.requestTimeout);
+    if (response.statusCode != 204) throw ApiException.fromResponse(response.statusCode, response.body);
   }
 
-  /// Comprueba que el servidor esté en línea. No requiere identidad.
-  Future<HealthResult> checkHealth() async {
+  Map<String, String> _auth(String token) => {'Authorization': 'Bearer $token'};
+
+  Future<http.Response> _authorized(Future<http.Response> Function(String token) send, Duration timeout) async {
+    final response = await _guard(() async => send(await _session.token()), timeout);
+    if (response.statusCode != 401) return response;
+    return _guard(() async => send(await _session.recover()), timeout);
+  }
+
+  Future<http.Response> _guard(Future<http.Response> Function() call, Duration timeout) async {
     try {
-      final response = await _client
-          .get(_uri('/health'))
-          .timeout(AppConfig.connectivityTimeout);
-      if (response.statusCode != 200) {
-        return HealthResult(
-          online: false,
-          message: 'El servidor respondió con estado ${response.statusCode}.',
-        );
-      }
-      final body = _decode(response);
-      final status = body['status']?.toString() ?? 'ok';
-      return HealthResult(
-        online: status == 'ok',
-        message: status == 'ok'
-            ? 'Servidor disponible.'
-            : 'El servidor reporta un estado inesperado.',
-      );
+      return await call().timeout(timeout);
     } on TimeoutException {
-      return const HealthResult(
-        online: false,
-        message: 'El servidor no respondió a tiempo.',
-      );
-    } catch (_) {
-      return const HealthResult(
-        online: false,
-        message: 'No se pudo conectar con el servidor.',
-      );
-    }
-  }
-
-  Future<http.Response> _get(Uri uri) async {
-    final request = http.Request('GET', uri)..headers.addAll(_identityHeaders);
-    return _send(request);
-  }
-
-  Future<http.Response> _send(http.BaseRequest request) async {
-    try {
-      final streamed = await _client.send(request).timeout(_timeout);
-      return await http.Response.fromStream(streamed);
-    } on TimeoutException {
-      throw ApiException.timeout();
+      throw timeout == AppConfig.analyzeTimeout ? ApiException.timeout() : ApiException.connection();
     } on http.ClientException {
-      throw ApiException.network();
-    } catch (error) {
-      if (error is ApiException) rethrow;
-      throw ApiException.network();
+      throw ApiException.connection();
     }
   }
 
-  void _ensure(http.Response response, {required int expected}) {
-    if (response.statusCode == expected) return;
-    throw ApiException.fromStatus(response.statusCode, _detail(response));
+  Map<String, dynamic> _json(http.Response response, int expected) {
+    if (response.statusCode != expected) throw ApiException.fromResponse(response.statusCode, response.body);
+    return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
   }
-
-  String? _detail(http.Response response) {
-    try {
-      final body = jsonDecode(utf8.decode(response.bodyBytes));
-      if (body is! Map) return null;
-      final detail = body['detail'];
-      if (detail is String) return detail;
-      if (detail is List && detail.isNotEmpty) {
-        final first = detail.first;
-        if (first is Map && first['msg'] != null) {
-          return first['msg'].toString();
-        }
-      }
-      return null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Map<String, dynamic> _decode(http.Response response) {
-    try {
-      final body = jsonDecode(utf8.decode(response.bodyBytes));
-      if (body is Map<String, dynamic>) return body;
-      if (body is Map) return Map<String, dynamic>.from(body);
-      throw const ApiException(
-        message: 'El servidor devolvió una respuesta que no pudimos interpretar.',
-        retryable: true,
-      );
-    } on ApiException {
-      rethrow;
-    } catch (_) {
-      throw const ApiException(
-        message: 'El servidor devolvió una respuesta que no pudimos interpretar.',
-        retryable: true,
-      );
-    }
-  }
-
-  void close() => _client.close();
-}
-
-class HealthResult {
-  const HealthResult({required this.online, required this.message});
-
-  final bool online;
-  final String message;
 }

@@ -1,66 +1,39 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 
-/// Paleta oficial de TALKY.
-///
-/// El azul profundo y el turquesa vienen del plumaje de Talky; el coral se usa
-/// como acento puntual para llamados a la acción y datos destacados.
+/// Colores de marca. Los nombres coinciden con las variables "Talky" de Figma
+/// (`color/brand/primary` -> [primary], `color/action/primary` -> [action]).
 abstract final class AppColors {
-  // Marca
-  static const ocean = Color(0xFF1157B5);
-  static const oceanDark = Color(0xFF0A3A78);
-  static const oceanDeep = Color(0xFF082B5A);
-  static const blue = Color(0xFF2B7DE9);
-  static const blueSoft = Color(0xFFE7F0FE);
-  static const blueMist = Color(0xFFF3F7FE);
+  static const primary = Color(0xFF4FBEFF);
+  static const tint80 = Color(0xFF74CCFF);
+  static const tint60 = Color(0xFF99D9FF);
+  static const tint40 = Color(0xFFBFE6FF);
+  static const tint20 = Color(0xFFE3F4FF);
+  static const deep = Color(0xFF2E9FE6);
 
-  static const turquoise = Color(0xFF11B5A4);
-  static const turquoiseDark = Color(0xFF087F74);
-  static const turquoiseSoft = Color(0xFFDFF8F4);
+  /// Fondo de botones y enlaces: contraste 4.68 con blanco (AA).
+  static const action = Color(0xFF0F78C2);
 
-  static const coral = Color(0xFFFF8A4C);
-  static const coralDark = Color(0xFFC9501A);
-  static const coralSoft = Color(0xFFFFEEE4);
-
-  // Neutros
-  static const ink = Color(0xFF11253F);
-  static const inkSoft = Color(0xFF50627A);
-  static const inkMuted = Color(0xFF7B8BA0);
-  static const canvas = Color(0xFFF7F9FC);
+  static const canvas = Color(0xFFF4FAFF);
   static const surface = Color(0xFFFFFFFF);
-  static const surfaceSunken = Color(0xFFF0F4FA);
-  static const border = Color(0xFFE2E9F2);
-  static const borderStrong = Color(0xFFCBD7E6);
+  static const ink = Color(0xFF0F2A4A);
+  static const inkMuted = Color(0xFF4A6382);
+  static const onAction = Color(0xFFFFFFFF);
+  static const success = Color(0xFF1A8754);
+  static const warning = Color(0xFFA86200);
+  static const danger = Color(0xFFC9372C);
+}
 
-  // Semánticos
-  static const success = Color(0xFF16835B);
-  static const successSoft = Color(0xFFE4F7EE);
-  static const warning = Color(0xFFB36B00);
-  static const warningSoft = Color(0xFFFFF3DC);
-  static const danger = Color(0xFFC43D3D);
-  static const dangerSoft = Color(0xFFFDECEC);
+abstract final class AppSpacing {
+  static const xs = 4.0;
+  static const sm = 8.0;
+  static const md = 16.0;
+  static const lg = 24.0;
+  static const xl = 32.0;
+}
 
-  // Gradientes
-  static const heroGradient = LinearGradient(
-    colors: [Color(0xFF0D3F82), Color(0xFF1566C9), Color(0xFF1889C9)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const creamGradient = LinearGradient(
-    colors: [Color(0xFFF2F7FF), Color(0xFFFBFDFF), Color(0xFFF3FBF9)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const brandGradient = LinearGradient(
-    colors: [ocean, blue],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const turquoiseGradient = LinearGradient(
-    colors: [Color(0xFF19C7B3), Color(0xFF0D9E90)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+abstract final class AppRadius {
+  static const sm = 12.0;
+  static const md = 20.0;
+  static const lg = 28.0;
+  static const full = 999.0;
 }

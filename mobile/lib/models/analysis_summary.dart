@@ -1,61 +1,42 @@
-/// Elemento de `GET /analyses`. La lista no trae el detalle completo.
+/// Elemento de `GET /analyses` (dataclass `AnalysisSummary` del backend).
 class AnalysisSummary {
   const AnalysisSummary({
     required this.id,
     required this.filename,
     required this.createdAt,
-    required this.duracionS,
-    required this.ppm,
-    required this.totalMuletillas,
-    this.isDemo = false,
+    required this.durationS,
+    required this.wordsPerMinute,
+    required this.totalFillers,
   });
 
   final String id;
   final String filename;
   final DateTime? createdAt;
-  final double? duracionS;
-  final double? ppm;
-  final int totalMuletillas;
-  final bool isDemo;
+  final double? durationS;
+  final double? wordsPerMinute;
+  final int totalFillers;
 
-  String get cleanName {
-    final dot = filename.lastIndexOf('.');
-    if (dot <= 0) return filename;
-    return filename.substring(0, dot);
-  }
-
-  factory AnalysisSummary.fromJson(Map<String, dynamic> json) {
-    return AnalysisSummary(
-      id: (json['id'] ?? '').toString(),
-      filename: (json['filename'] ?? 'Audio sin nombre').toString(),
-      createdAt: DateTime.tryParse(
-        (json['created_at'] ?? json['creado_en'] ?? '').toString(),
-      ),
-      duracionS: _toDouble(json['duracion_s']),
-      ppm: _toDouble(json['ppm']),
-      totalMuletillas: _toInt(json['total_muletillas']) ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'filename': filename,
-        'created_at': createdAt?.toUtc().toIso8601String(),
-        'duracion_s': duracionS,
-        'ppm': ppm,
-        'total_muletillas': totalMuletillas,
-      };
+  factory AnalysisSummary.fromJson(Map<String, dynamic> json) => AnalysisSummary(
+    id: json['id'] as String,
+    filename: json['filename'] as String? ?? 'audio',
+    createdAt: DateTime.tryParse(json['created_at'] as String? ?? ''),
+    durationS: (json['duracion_s'] as num?)?.toDouble(),
+    wordsPerMinute: (json['ppm'] as num?)?.toDouble(),
+    totalFillers: (json['total_muletillas'] as num? ?? 0).toInt(),
+  );
 }
 
-double? _toDouble(Object? value) {
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value);
-  return null;
-}
+class HistoryPage {
+  const HistoryPage({required this.items, required this.total});
 
-int? _toInt(Object? value) {
-  if (value is int) return value;
-  if (value is num) return value.round();
-  if (value is String) return int.tryParse(value);
-  return null;
+  final List<AnalysisSummary> items;
+  final int total;
+
+  factory HistoryPage.fromJson(Map<String, dynamic> json) => HistoryPage(
+    items: [
+      for (final item in json['items'] as List? ?? const [])
+        AnalysisSummary.fromJson(Map<String, dynamic>.from(item as Map)),
+    ],
+    total: (json['total'] as num? ?? 0).toInt(),
+  );
 }
