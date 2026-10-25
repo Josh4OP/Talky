@@ -1,7 +1,7 @@
 ---
 id: T16
 title: Aplicación Flutter: marca Talky, mascota animada, resultados e historial
-status: todo
+status: done
 phase: 4-cliente-y-calidad
 depends_on: [T15, T19]
 requirements: [RF-01, RF-02, RF-08, RF-11, RNF-01, RNF-02]
