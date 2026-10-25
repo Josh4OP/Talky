@@ -36,9 +36,6 @@ enum _Phase { loading, failed, revealing, done }
 class _SplashToHomeState extends State<SplashToHome> with TickerProviderStateMixin {
   static const _mascotSize = 180.0;
 
-  /// Ojo del loro en el lienzo de 512 de la mascota.
-  static const _eye = Offset(320 / 512, 156 / 512);
-
   final _mascotKey = GlobalKey();
   late final _float = AnimationController(vsync: this, duration: const Duration(seconds: 3));
   late final _dot = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
@@ -117,7 +114,9 @@ class _SplashToHomeState extends State<SplashToHome> with TickerProviderStateMix
     final stack = context.findRenderObject() as RenderBox?;
     if (mascot == null || stack == null) return Offset.zero;
     final topLeft = mascot.localToGlobal(Offset.zero, ancestor: stack);
-    return topLeft + Offset(_eye.dx * mascot.size.width, _eye.dy * mascot.size.height) + widget.originAdjust;
+    return topLeft +
+        Offset(silhouetteEye.dx * mascot.size.width, silhouetteEye.dy * mascot.size.height) +
+        widget.originAdjust;
   }
 
   @override

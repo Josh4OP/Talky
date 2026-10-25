@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:talky/widgets/mascot/parrot_geometry.dart';
-import 'package:talky/widgets/mascot/svg_path.dart';
 import 'package:talky/widgets/mascot/talky_mascot.dart';
 
 Widget host(Widget child, {bool still = false}) => MaterialApp(
@@ -13,25 +12,26 @@ Widget host(Widget child, {bool still = false}) => MaterialApp(
 );
 
 void main() {
-  test('every layer path parses', () {
-    for (final layer in parrotLayers) {
-      expect(parseSvgPath(layer.path).getBounds().isEmpty, isFalse, reason: layer.name);
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('every state points to a bundled image', () async {
+    for (final state in MascotState.values) {
+      final data = await rootBundle.load(mascotAsset(state));
+      expect(data.lengthInBytes, greaterThan(0), reason: state.name);
     }
   });
 
-  test('each state shows its own accessories', () {
-    Set<String> names(MascotState s) => visibleLayers(s).map((l) => l.name).toSet();
-    expect(names(MascotState.thinking), containsAll(['fx_bulb', 'eye_open']));
-    expect(names(MascotState.talking), containsAll(['fx_wave_a', 'fx_wave_b']));
-    expect(names(MascotState.sad), contains('eye_sad'));
-    expect(names(MascotState.silhouette), isNot(contains('shadow')));
-    expect(names(MascotState.normal), isNot(contains('fx_bulb')));
+  test('talking bounces during the cycle', () {
+    final lifts = [for (var t = 0.0; t < 1; t += 0.01) MascotMotion.at(MascotState.talking, t).dy];
+    expect(lifts.reduce((a, b) => a < b ? a : b), lessThan(-0.015));
+    expect(lifts.reduce((a, b) => a > b ? a : b), closeTo(0, 0.001));
   });
 
-  test('talking opens and closes the beak during the cycle', () {
-    final angles = [for (var t = 0.0; t < 1; t += 0.01) MascotPose.at(MascotState.talking, t).rotation['beak_lower']!];
-    expect(angles.reduce((a, b) => a < b ? a : b), lessThan(2));
-    expect(angles.reduce((a, b) => a > b ? a : b), greaterThan(20));
+  test('only thinking makes the bulb glow', () {
+    for (final state in MascotState.values) {
+      final glows = [for (var t = 0.0; t < 1; t += 0.05) MascotMotion.at(state, t).glow];
+      expect(glows.any((g) => g > 0), state == MascotState.thinking, reason: state.name);
+    }
   });
 
   for (final state in MascotState.values) {
@@ -39,7 +39,7 @@ void main() {
       await tester.pumpWidget(host(TalkyMascot(state: state)));
       await tester.pump(const Duration(milliseconds: 500));
       expect(tester.takeException(), isNull);
-      expect(find.byType(TalkyMascot), findsOneWidget);
+      expect(find.byType(Image), findsOneWidget);
     });
   }
 
