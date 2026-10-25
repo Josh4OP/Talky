@@ -28,14 +28,13 @@ Entregar la app Flutter de TALKY con identidad visual propia (el loro pirata), d
 
 ### 1. Diseño en Figma (antes de escribir UI)
 
-Requiere la sesión de Figma iniciada en el plugin. Un archivo "TALKY - App" con estas páginas:
+Archivo "TALKY - App" (https://www.figma.com/design/83qT9rYtx1cbuqcd0uZoNw). El plan Starter permite 3 páginas, así que el prototipo va dentro de Pantallas:
 
-1. **Marca**: variables de color y estilos de texto (ver Contrato). Estas variables son la fuente de los tokens de `theme/`.
-2. **Mascota**: el loro pirata vectorizado por **capas separadas** (cuerpo, cabeza, ojo, párpado, pico superior, pico inferior, ala izquierda, ala derecha, sombrero, cola, patas, sombra) en un lienzo común de 512 x 512 con el punto de pivote de cada capa marcado. Un componente con variantes `estado = normal | pensando | hablando` y `expresion = feliz | sorprendido | triste | guiño`, más los accesorios de cada estado (rayitas de saludo, bombillo, chispas, engranajes, signo de pregunta, ondas de sonido).
-3. **Pantallas** (móvil 390 x 844): splash, inicio, procesando, resultados, historial, historial vacío, error de conexión y diálogo de error de la API.
-4. **Prototipo**: flujo navegable splash -> inicio -> procesando -> resultados -> historial, con Smart Animate para mostrar la intención de cada animación.
+1. **Marca**: variables de color, espaciado y radios (colección "Talky") y estilos de texto (ver Contrato). Son la fuente de los tokens de `theme/`.
+2. **Mascota**: referencia de estados. La fuente de verdad de la mascota son los PNG con fondo transparente de `mobile/Vocetos/` (`estado-normal.png`, `estado-pensando.png`, `estado-hablando.png`, `Silueta.png`), fieles a los bocetos de marca. El loro vectorial que se dibujó en Figma quedó descartado por no parecerse a los bocetos.
+3. **Pantallas** (móvil 390 x 844): splash, inicio, procesando, resultados, historial, historial vacío, error de conexión y diálogo de error de la API, más el prototipo navegable splash -> inicio -> procesando -> resultados -> historial.
 
-Exportación a `mobile/assets/`: capas de la mascota y logotipo como PNG en 1x, 2x y 3x (variantes por resolución de Flutter, sin paquete SVG). Capturas de las pantallas finales en `docs/img/`.
+Estado al 2026-10-25: Marca completa; Pantallas con componentes y las pantallas 01 a 04. Se agotó el cupo de llamadas del MCP de Figma del plan Starter; faltan resultados, historial, prototipo y reemplazar el loro vectorial por los PNG. Las capturas de la app real van en `docs/img/`.
 
 ### 2. Marca en código
 
@@ -45,21 +44,22 @@ Exportación a `mobile/assets/`: capas de la mascota y logotipo como PNG en 1x, 
 
 ### 3. Mascota animada
 
-Un widget `TalkyMascot(state:, expression:, size:)` que compone las capas exportadas y las anima con `AnimationController` y transformaciones (rotación sobre el pivote, traslación, escala, opacidad). Cada estado tiene una animación en bucle:
+Un widget `TalkyMascot(state:, size:)` que muestra la imagen del estado (`mobile/assets/mascot/`, reducidas a 900 px desde `mobile/Vocetos/`) y la anima entera con `AnimationController` y transformaciones (traslación, rotación sobre las patas, escala). Cada estado tiene una animación en bucle:
 
 | Estado | Dónde aparece | Animación |
 |---|---|---|
-| Normal | Inicio, historial, cabecera de resultados | Respiración (escala 1.00 a 1.02, 3 s), parpadeo cada 3 a 5 s, balanceo leve del sombrero, rayitas de saludo que aparecen al entrar |
-| Pensando | Procesando (mientras `POST /analyses` está en curso) | Ala en la barbilla, mirada hacia arriba, bombillo que titila, chispas que aparecen y se apagan en secuencia, engranajes girando |
-| Hablando | Resultados, al presentar el resumen y las recomendaciones | Pico que abre y cierra, ondas de sonido que salen en secuencia, ala que gesticula |
+| Normal | Inicio, historial vacío | Respiración (escala 1.00 a 1.015, 3 s) y balanceo leve |
+| Pensando | Procesando (mientras `POST /analyses` está en curso) | Cabeza que se inclina y vuelve, flotación leve y brillo que late detrás del bombillo |
+| Hablando | Resultados, junto al resumen | Rebote corto al ritmo de la voz |
+| Silueta | Splash | Respiración; el splash la hace flotar |
 
-Expresiones sobre cualquier estado: `sorprendido` para errores de la API (422, 503), `triste` para la API apagada, `guiño` al terminar un análisis. El cambio de estado o expresión se hace con una transición corta (unos 300 ms), sin saltos.
+`sorprendido` (errores de la API) y `triste` (sin conexión) aún no tienen imagen propia: reutilizan pensando (con un sacudón) y normal (inclinada y apagada). Si se generan sus PNG, basta con agregarlos y cambiar el mapa de imágenes. El cambio de estado se hace con una transición corta (unos 300 ms), sin saltos.
 
 Reglas de animación:
 
 - Si `MediaQuery.disableAnimations` es verdadero, la mascota queda en su pose estática y el splash no anima nubes.
 - `RepaintBoundary` alrededor de la mascota y de los fondos animados; nada de `setState` por cuadro. Los controladores se detienen fuera de pantalla (`TickerMode`) y se liberan en `dispose`.
-- Lo aleatorio (parpadeo, nubes) usa `Random` con semilla fija.
+- Lo aleatorio (nubes) usa `Random` con semilla fija.
 - Las animaciones nunca bloquean la navegación ni retrasan la respuesta a un toque.
 
 ### 4. Pantallas
@@ -77,13 +77,13 @@ Reglas de animación:
 - Ante un 401: un único intento de renovar y repetir la petición. Si el token ya venció, se pide uno nuevo y se avisa que el historial anterior no está disponible en este dispositivo.
 - Tiempo de espera de 120 s en `POST /analyses`. Errores (400, 401, 404, 413, 422, 503 y sin conexión) en mensajes en español.
 
-No hacer: procesar audio en el teléfono, registro con contraseña, traducciones, modo oscuro antes de terminar lo demás. La grabación dentro de la app (paquete `record`, que ya está en el avance) se conserva solo si funciona en Android sin errores; si no, se retira y queda como mejora futura.
+No hacer: procesar audio en el teléfono, registro con contraseña, traducciones, modo oscuro antes de terminar lo demás. La grabación dentro de la app queda como mejora futura.
 
 ## Contrato
 
 - **Paleta** (guía de marca): `primary #4FBEFF`, `tint80 #74CCFF`, `tint60 #99D9FF`, `tint40 #BFE6FF`, `tint20 #E3F4FF`, `white #FFFFFF`. Texto principal azul marino oscuro con contraste AA sobre blanco y sobre `tint20`; el texto blanco sobre `primary` solo en tamaños de 18 sp o más, o en negrita de 14 sp o más.
 - **Tipografía**: Nunito (títulos y cifras), Nunito Sans (texto). Mínimo 14 sp.
-- **Dependencias**: `provider`, `http`, `file_picker`, `fl_chart`, `shared_preferences`, `uuid`, `intl` y, si se conserva la grabación, `record`, `path_provider` y `cross_file`. Nada de Rive, Lottie ni paquetes de animación: todo con el SDK.
+- **Dependencias**: `provider`, `http`, `file_picker`, `fl_chart`, `shared_preferences` e `intl`. Nada de Rive, Lottie ni paquetes de animación: todo con el SDK. La grabación dentro de la app (`record`) se retiró del MVP.
 - **Configuración**: `--dart-define=API_BASE_URL=...` (por defecto `http://10.0.2.2:8000`).
 - **API**: `07-api-contract.md` más los endpoints de sesión de T19. Todo campo `null` oculta su sección sin romper la pantalla.
 
