@@ -22,6 +22,7 @@ Convenciones: código y nombres técnicos de dominio en el idioma ya usado (ingl
 | `application/services/metrics` | `tests/unit/test_metrics.py` | T13 |
 | `config/settings`, `config/container`, `application/services/ensemble`, `application/use_cases/analyze_presentation` | `tests/unit/test_settings.py`, `tests/unit/test_container.py` | T14 |
 | `presentation/app`, `presentation/routes/analysis`, `main.py` | `tests/api/test_routes.py`, `tests/e2e/test_pipeline_fake.py` | T15 |
+| `infrastructure/security/jwt_tokens`, `presentation/routes/auth`, sesión en `config/{settings,container}` | `tests/unit/test_jwt_tokens.py`, `tests/unit/test_auth_settings.py`, `tests/api/test_auth_routes.py` | T19 |
 
 ## Dominio
 
@@ -34,6 +35,7 @@ class InvalidAudioError(TalkyError, ValueError)           # audio ilegible, sin 
 class ProviderError(TalkyError)                           # fallo de un proveedor externo
 class RateLimitedError(ProviderError)                     # 429; atributo retry_after: float | None
 class AllProvidersFailedError(TalkyError, RuntimeError)   # atributo errors: dict[str, str] -> HTTP 503
+class InvalidTokenError(TalkyError)                       # token de sesión inválido o vencido -> HTTP 401 (T19)
 ```
 
 `RateLimitedError(message="Proveedor limitado por cuota", retry_after=None)`. `AllProvidersFailedError(errors)` arma el mensaje con `nombre: error` separados por `;`.
@@ -58,6 +60,11 @@ class AnalysisRepository(ABC):
     list(user_id, limit=50, offset=0) -> list[AnalysisSummary]
     count(user_id) -> int
     delete(user_id, analysis_id) -> bool
+
+@dataclass(frozen=True) IssuedToken(access_token: str, subject: str, expires_in: int)   # access_token fuera de repr
+class TokenService(ABC):                                                                 # T19
+    issue(subject: str) -> IssuedToken
+    verify(token: str) -> str                    # devuelve el sujeto; InvalidTokenError si no es válido
 ```
 
 Las listas por defecto de los dataclasses usan `field(default_factory=list)`.
@@ -204,11 +211,21 @@ Ver docstrings de las pruebas. `SklearnEventClassifier(model, *, win_s=0.5, min_
 
 Variables y valores por defecto: `context/05-llm-and-groq.md`, sección Variables de entorno. Reglas de `llm_provider_specs()`: un proveedor por cada modelo de `GROQ_MODEL` si hay clave; nombre `groq` si hay un solo modelo, `groq:<modelo>` si hay varios; igual para Gemini; `ollama` si `OLLAMA_MODEL`. Endpoints en `ENDPOINTS`. Contenedor: ver docstring de `tests/unit/test_container.py` y `context/02-architecture.md`. Modelos estrictos solo para proveedores `groq` cuyo modelo contiene `gpt-oss` o `qwen`.
 
+### Sesión (T19)
+
+`Settings` agrega `auth_mode` (`header` por defecto o `jwt`), `jwt_secret` (fuera de `repr`) y `jwt_ttl_days` (30). `build_container(..., token_service=None)`: en modo `header`, `Container.token_service` es `None`; en modo `jwt` usa el inyectado o crea `JwtTokenService`, y sin `JWT_SECRET` de al menos 32 caracteres lanza `ConfigurationError` antes de importar PyJWT.
+
+`JwtTokenService(secret, ttl_s, clock=time.time)` (`infrastructure/security/jwt_tokens.py`): HS256 fijo al verificar, claims obligatorios `sub`, `iat`, `exp`, `iss="talky"`; el vencimiento lo decide el reloj inyectado; el sujeto cumple `^[A-Za-z0-9_.@-]{1,64}$`. Secreto corto, vida no positiva o sujeto inválido al emitir: `ValueError`. Cualquier fallo al verificar: `InvalidTokenError`. Ver docstring de `tests/unit/test_jwt_tokens.py`.
+
 ## Presentación
 
 ### `app.py` y `routes/analysis.py` (T15)
 
 `create_app(container) -> FastAPI`: título "TALKY", CORS con `settings.cors_origins`, router de análisis, `GET /health`. `main.py` expone `app = create_app(build_container(Settings.from_env()))` sin ejecutar nada pesado al importar más allá de eso, cargando `.env` con `python-dotenv` solo si está instalado. Mapeo de errores en `context/07-api-contract.md`. El archivo se escribe a un temporal por bloques de 1 MB contando bytes (413 si pasa del límite) y siempre se borra en `finally`.
+
+### `routes/auth.py` (T19)
+
+`build_auth_router(tokens)` con `POST /auth/token` (201, sujeto `talky-` + `uuid4().hex`) y `POST /auth/refresh` (200, mismo sujeto); `create_app` lo registra solo en modo `jwt`. `bearer_user(tokens)` es la dependencia de identidad en modo `jwt`: sin Bearer o con token inválido responde 401 con `WWW-Authenticate: Bearer` y mensaje en español; `X-User-Id` se ignora. Ver docstring de `tests/api/test_auth_routes.py` y `context/07-api-contract.md`.
 
 ## Dobles de prueba
 

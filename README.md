@@ -79,6 +79,7 @@ cp .env.example .env
 | `ENABLE_VERIFIER`, `ENABLE_TEXT_EMBEDDINGS`, `EMBEDDING_MODEL` | Verificador de citas y coherencia con embeddings |
 | `ENABLE_EVENT_CLASSIFIER`, `EVENT_MODEL_PATH` | Clasificador acústico y ruta del modelo; se deja en `false` en el MVP (mejora futura) |
 | `DB_PATH`, `CORS_ORIGINS` | Base de datos del historial y orígenes permitidos |
+| `AUTH_MODE`, `JWT_SECRET`, `JWT_TTL_DAYS` | `header` (cabecera `X-User-Id`, desarrollo) o `jwt` (token de dispositivo, la app); secreto de al menos 32 caracteres y días de vida del token |
 
 El detalle y los valores por defecto están en `.env.example`.
 
@@ -121,7 +122,7 @@ flutter run -d edge --dart-define=API_BASE_URL=http://127.0.0.1:8000
 - El audio de la exposición se envía a Groq para transcribirse, y la transcripción se envía a los proveedores de LLM configurados (Groq y, si se activa, Gemini). Si se usa el modo `local`, la transcripción se hace en tu equipo.
 - TALKY no guarda el audio: se escribe en un archivo temporal, se procesa y se borra, también cuando hay error.
 - La transcripción completa no se guarda; el historial conserva métricas, la síntesis y citas cortas.
-- El historial se separa por el encabezado `X-User-Id`. Es una identidad declarada, no una autenticación.
+- El historial se separa por usuario. Con `AUTH_MODE=jwt` (la app) el servidor genera el identificador y lo firma en un token de dispositivo: es una sesión anónima, no una cuenta, y perder el token es perder el acceso al historial. Con `AUTH_MODE=header` (desarrollo) es una identidad declarada en `X-User-Id`, no una autenticación.
 
 ## 10. Equipo
 

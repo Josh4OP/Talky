@@ -1,13 +1,13 @@
 ---
 id: T19
 title: Sesión con JWT de dispositivo
-status: todo
+status: done
 phase: 3-integracion
 depends_on: [T15]
 requirements: [RNF-01]
 estimate: 3h
-tests: [-]
-touches: [src/domain/interfaces/ports.py, src/domain/exceptions/__init__.py, src/infrastructure/security/jwt_tokens.py, src/presentation/routes/auth.py, src/presentation/routes/analysis.py, src/presentation/app.py, src/config/settings.py, src/config/container.py, requirements.txt, .env.example]
+tests: [tests/unit/test_jwt_tokens.py, tests/unit/test_auth_settings.py, tests/api/test_auth_routes.py]
+touches: [src/domain/interfaces/ports.py, src/domain/exceptions/__init__.py, src/infrastructure/security/jwt_tokens.py, src/presentation/routes/auth.py, src/presentation/routes/analysis.py, src/presentation/app.py, src/config/settings.py, src/config/container.py, requirements.txt, harness/templates/env.example]
 ---
 # T19 - Sesión con JWT de dispositivo
 

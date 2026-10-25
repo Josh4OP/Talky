@@ -49,5 +49,5 @@ Fuente oficial: documento "Avance Proyecto de Aula, requerimientos" del equipo (
 | RF-09 | T13 |
 | RF-10 | T10, T11 (aplazadas, D-11), T12 |
 | RF-11, RNF-02 | T16 |
-| RNF-01 | T05, T15 |
+| RNF-01 | T05, T15, T19 |
 | RNF-03 | T04, T07, T17 |
