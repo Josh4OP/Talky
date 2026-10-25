@@ -25,7 +25,7 @@ Regla dura: `application` y `domain` no importan `infrastructure`, `fastapi`, `o
 ## Flujo de una petición
 
 ```
-Flutter  --POST /analyses (audio + X-User-Id)-->  FastAPI
+Flutter  --POST /analyses (audio + Bearer JWT)-->  FastAPI
                                                     |
                                           1. validar extensión y tamaño (streaming a archivo temporal)
                                                     |
@@ -134,4 +134,4 @@ tests/  evals/  harness/
 
 ## Seguridad y privacidad (resumen)
 
-Ver `agent/rules/security-privacy.md`. Puntos de arquitectura: identidad por cabecera `X-User-Id` validada con regex (suficiente para el MVP, se declara como limitación), consultas siempre filtradas por usuario, sin logs con contenido de transcripciones, claves solo por entorno.
+Ver `agent/rules/security-privacy.md`. Puntos de arquitectura: identidad por token de dispositivo firmado por el servidor (`AUTH_MODE=jwt`, D-12) o por cabecera `X-User-Id` validada con regex en desarrollo y pruebas (`AUTH_MODE=header`); el `TokenService` es un puerto y solo `config` crea su adaptador, consultas siempre filtradas por usuario, sin logs con contenido de transcripciones, claves solo por entorno.

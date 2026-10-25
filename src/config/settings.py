@@ -10,6 +10,7 @@ ENDPOINTS = {
     "ollama": "http://localhost:11434/v1",
 }
 TRANSCRIBER_MODES = ("auto", "groq", "local")
+AUTH_MODES = ("header", "jwt")
 _TRUE = {"true", "1", "yes", "on"}
 _FALSE = {"false", "0", "no", "off", ""}
 
@@ -48,11 +49,14 @@ def _text(var: str, raw: str) -> str:
     return raw.strip()
 
 
-def _transcriber(var: str, raw: str) -> str:
-    value = raw.strip().lower()
-    if value not in TRANSCRIBER_MODES:
-        raise ValueError(f"{var} debe ser uno de {', '.join(TRANSCRIBER_MODES)} (se recibió {raw!r})")
-    return value
+def _choice(options: tuple[str, ...]) -> Callable[[str, str], str]:
+    def parse(var: str, raw: str) -> str:
+        value = raw.strip().lower()
+        if value not in options:
+            raise ValueError(f"{var} debe ser uno de {', '.join(options)} (se recibió {raw!r})")
+        return value
+
+    return parse
 
 
 def _origins(var: str, raw: str) -> tuple[str, ...]:
@@ -86,6 +90,9 @@ class Settings:
     enable_event_classifier: bool = False
     event_model_path: str = "models/event_classifier.joblib"
     cors_origins: tuple[str, ...] = ("*",)
+    auth_mode: str = "header"
+    jwt_secret: str = field(default="", repr=False)
+    jwt_ttl_days: int = 30
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -135,7 +142,7 @@ _PARSERS: dict[str, Callable[[str, str], object]] = {
     "ollama_model": _text,
     "judge_provider": _text,
     "min_models_ok": _number(int),
-    "transcriber": _transcriber,
+    "transcriber": _choice(TRANSCRIBER_MODES),
     "whisper_model": _text,
     "groq_whisper_model": _text,
     "max_transcript_chars": _number(int),
@@ -149,4 +156,7 @@ _PARSERS: dict[str, Callable[[str, str], object]] = {
     "enable_event_classifier": _bool,
     "event_model_path": _text,
     "cors_origins": _origins,
+    "auth_mode": _choice(AUTH_MODES),
+    "jwt_secret": _text,
+    "jwt_ttl_days": _number(int),
 }

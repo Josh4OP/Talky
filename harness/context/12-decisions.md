@@ -38,6 +38,13 @@ Formato: contexto, decisión, consecuencias. Una decisión se cambia agregando u
 - Decisión: identificador declarado por el cliente, validado por regex, usado para aislar datos.
 - Consecuencias: cumple el aislamiento lógico pero no es autenticación. Se declara como limitación y como trabajo futuro (JWT).
 
+## D-12: Sesión con JWT de dispositivo
+
+- Fecha: 2026-10-25. Complementa D-06.
+- Contexto: con `X-User-Id` el cliente elige su identificador; cualquiera que lo conozca puede leer el historial ajeno. El registro con contraseña sigue fuera del MVP.
+- Decisión: `AUTH_MODE=jwt` hace que el servidor genere el identificador y lo entregue firmado en un JWT HS256 (`POST /auth/token`, `POST /auth/refresh`, 30 días). La app usa este modo. `AUTH_MODE=header` sigue siendo el valor por defecto para desarrollo y para no modificar las pruebas de contrato de T15 ni sus dobles. Se agrega PyJWT para no implementar criptografía propia.
+- Consecuencias: el cliente ya no puede suplantar a otro usuario eligiendo su identificador. Es una sesión por dispositivo, no una cuenta: perder el token es perder el acceso al historial, y no hay revocación ni límite de emisión de tokens. Hay que configurar `JWT_SECRET` en el PC de la demo.
+
 ## D-07: SQLite sin ORM
 
 - Contexto: un solo servidor, datos pequeños, plazo corto.

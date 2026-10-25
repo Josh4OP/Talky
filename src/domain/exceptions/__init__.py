@@ -13,6 +13,10 @@ class InvalidAudioError(TalkyError, ValueError):
     """Audio ilegible, sin voz o fuera de los límites permitidos."""
 
 
+class InvalidTokenError(TalkyError):
+    """Token de sesión inválido: firma, emisor, sujeto o vencimiento."""
+
+
 class ProviderError(TalkyError):
     """Fallo de un proveedor externo."""
 

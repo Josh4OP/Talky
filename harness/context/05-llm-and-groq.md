@@ -88,6 +88,9 @@ Viven en código (`src/application/prompts.py`) y tienen copia de referencia en 
 | `EMBEDDING_MODEL` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Modelo de embeddings |
 | `ENABLE_VERIFIER` | `true` | Activa el verificador de citas |
 | `CORS_ORIGINS` | `*` | Orígenes permitidos, separados por coma |
+| `AUTH_MODE` | `header` | `header` (identidad con `X-User-Id`) o `jwt` (token de dispositivo, T19) |
+| `JWT_SECRET` | vacío | Secreto para firmar los tokens; obligatorio y de al menos 32 caracteres con `AUTH_MODE=jwt` |
+| `JWT_TTL_DAYS` | `30` | Días de vida de cada token |
 
 `Settings.from_env` valida los valores (booleanos, números, `TRANSCRIBER`) y falla con `ValueError` claro.
 

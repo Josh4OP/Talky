@@ -2,15 +2,30 @@
 
 Servidor: FastAPI. `create_app(container)` en `src/presentation/app.py`. Documentación automática en `/docs`. Las pruebas del contrato están en `tests/api/test_routes.py` y `tests/e2e/test_pipeline_fake.py`.
 
-## Identidad (MVP)
+## Identidad
 
-Cada petición (menos `/health`) lleva la cabecera `X-User-Id`. Debe cumplir `^[A-Za-z0-9_.@-]{1,64}$`. La app Flutter genera un identificador aleatorio en la primera ejecución y lo guarda en el dispositivo. Es identidad declarada, no autenticación: cualquiera que conozca el identificador de otro puede leer sus análisis. Se documenta como limitación; autenticación real (JWT) queda fuera del MVP.
+La variable `AUTH_MODE` elige el modo (D-06, D-12). Las rutas de `/analyses` usan uno u otro, nunca los dos.
+
+### Modo `jwt` (el que usa la app)
+
+1. En el primer arranque, la app pide `POST /auth/token` (sin cuerpo). Respuesta 201: `{"access_token": "...", "token_type": "bearer", "expires_in": 2592000}`. El servidor genera el identificador del usuario (`talky-` + 32 hexadecimales) y lo firma dentro del token (HS256, claims `sub`, `iat`, `exp`, `iss="talky"`).
+2. Cada petición a `/analyses` lleva `Authorization: Bearer <token>`. `X-User-Id` se ignora.
+3. `POST /auth/refresh` con un Bearer válido devuelve 200 con un token nuevo del mismo usuario. La app renueva cuando faltan menos de 7 días.
+4. Sin token, con token alterado, firmado con otro secreto o vencido: 401 con `WWW-Authenticate: Bearer`.
+
+Es una sesión anónima por dispositivo, no una cuenta: quien tenga el token es el usuario, y si el token se pierde o vence sin renovarse, el historial anterior deja de ser accesible. No hay registro con contraseña.
+
+### Modo `header` (por defecto; desarrollo y pruebas de contrato)
+
+Cada petición (menos `/health`) lleva la cabecera `X-User-Id`, que debe cumplir `^[A-Za-z0-9_.@-]{1,64}$`. Es identidad declarada, no autenticación: cualquiera que conozca el identificador de otro puede leer sus análisis. Las rutas `/auth/*` no existen en este modo.
 
 ## Endpoints
 
 | Método | Ruta | Descripción | Respuesta |
 |---|---|---|---|
 | GET | `/health` | Estado del servicio | 200 `{"status": "ok", ...}` |
+| POST | `/auth/token` | Crea una sesión de dispositivo (solo modo `jwt`) | 201 `{access_token, token_type, expires_in}` |
+| POST | `/auth/refresh` | Renueva el token actual (solo modo `jwt`) | 200 `{access_token, token_type, expires_in}` o 401 |
 | POST | `/analyses` | Sube un audio y devuelve el análisis | 201 con el análisis completo |
 | GET | `/analyses?limit=20&offset=0` | Lista del usuario, más recientes primero | 200 `{items, total, limit, offset}` |
 | GET | `/analyses/{id}` | Análisis guardado | 200 o 404 |
@@ -22,8 +37,8 @@ Cada petición (menos `/health`) lleva la cabecera `X-User-Id`. Debe cumplir `^[
 
 | Código | Cuándo | Cuerpo |
 |---|---|---|
-| 400 | Extensión no admitida o `X-User-Id` con formato inválido | `{"detail": "..."}` en español |
-| 401 | Falta `X-User-Id` | idem |
+| 400 | Extensión no admitida o `X-User-Id` con formato inválido (modo `header`) | `{"detail": "..."}` en español |
+| 401 | Falta `X-User-Id` (modo `header`); falta el token o es inválido o está vencido (modo `jwt`) | idem |
 | 404 | Análisis inexistente o de otro usuario | idem |
 | 413 | Archivo mayor que `MAX_UPLOAD_MB` (se corta durante la lectura) | idem |
 | 422 | Audio ilegible, sin voz, demasiado corto o demasiado largo | idem |

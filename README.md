@@ -79,6 +79,7 @@ cp .env.example .env
 | `ENABLE_VERIFIER`, `ENABLE_TEXT_EMBEDDINGS`, `EMBEDDING_MODEL` | Verificador de citas y coherencia con embeddings |
 | `ENABLE_EVENT_CLASSIFIER`, `EVENT_MODEL_PATH` | Clasificador acústico y ruta del modelo; se deja en `false` en el MVP (mejora futura) |
 | `DB_PATH`, `CORS_ORIGINS` | Base de datos del historial y orígenes permitidos |
+| `AUTH_MODE`, `JWT_SECRET`, `JWT_TTL_DAYS` | `header` (cabecera `X-User-Id`, desarrollo) o `jwt` (token de dispositivo, la app); secreto de al menos 32 caracteres y días de vida del token |
 
 El detalle y los valores por defecto están en `.env.example`.
 
@@ -102,12 +103,26 @@ La API queda en `http://127.0.0.1:8000` y la documentación interactiva en `http
 
 Para producción, restringe `CORS_ORIGINS` a los orígenes de la app (nunca `*`) y sirve la API detrás de HTTPS.
 
+## 8.1 Ejecutar la app Flutter
+
+```bash
+cd mobile
+flutter pub get
+flutter run -d edge --dart-define=API_BASE_URL=http://127.0.0.1:8000
+```
+
+- `API_BASE_URL` cambia la dirección de la API sin tocar código. Por defecto es `http://10.0.2.2:8000`, que es el host visto desde el emulador de Android.
+- Para un teléfono físico, usa la IP de tu equipo en la red local (por ejemplo `http://192.168.1.20:8000`).
+- La app abre con una pantalla de bienvenida. Si el servidor no está corriendo, puedes activar el **modo demostración** en Perfil: los datos de ejemplo se marcan siempre como tales y nunca se mezclan con tu historial.
+- Android ya declara `INTERNET` y `RECORD_AUDIO`; iOS declara `NSMicrophoneUsageDescription`. En la web el micrófono requiere HTTPS o `localhost`.
+- Verificación: `flutter analyze` y `flutter test` (20 pruebas) desde `mobile/`.
+
 ## 9. Privacidad
 
 - El audio de la exposición se envía a Groq para transcribirse, y la transcripción se envía a los proveedores de LLM configurados (Groq y, si se activa, Gemini). Si se usa el modo `local`, la transcripción se hace en tu equipo.
 - TALKY no guarda el audio: se escribe en un archivo temporal, se procesa y se borra, también cuando hay error.
 - La transcripción completa no se guarda; el historial conserva métricas, la síntesis y citas cortas.
-- El historial se separa por el encabezado `X-User-Id`. Es una identidad declarada, no una autenticación.
+- El historial se separa por usuario. Con `AUTH_MODE=jwt` (la app) el servidor genera el identificador y lo firma en un token de dispositivo: es una sesión anónima, no una cuenta, y perder el token es perder el acceso al historial. Con `AUTH_MODE=header` (desarrollo) es una identidad declarada en `X-User-Id`, no una autenticación.
 
 ## 10. Equipo
 

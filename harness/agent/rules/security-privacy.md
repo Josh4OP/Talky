@@ -14,8 +14,9 @@ Cumple RNF-01. Los audios de una exposición son datos personales.
 - Toda lectura, listado, conteo y borrado del repositorio filtra por `user_id`.
 - Recursos de otro usuario responden 404, no 403.
 - `X-User-Id` se valida con `^[A-Za-z0-9_.@-]{1,64}$` antes de tocar la base de datos.
+- En modo `jwt` el identificador sale solo del token verificado (HS256 fijo, nunca `alg` elegido por el token). `JWT_SECRET` vive solo en el entorno, tiene al menos 32 caracteres y no se registra. Los tokens viajan en `Authorization`, nunca en la URL ni en logs.
 - Todas las consultas SQL usan parámetros (`?`), nunca concatenación de cadenas.
-- Reconoce y documenta la limitación: es identidad declarada, no autenticación.
+- Reconoce y documenta la limitación: en modo `header` es identidad declarada; en modo `jwt` es una sesión anónima por dispositivo, no una cuenta.
 
 ## Secretos
 
