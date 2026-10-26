@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
@@ -92,6 +94,10 @@ class AppPill extends StatelessWidget {
 }
 
 /// Onda de la grabación: barras que siguen el nivel real del micrófono.
+///
+/// Los niveles llegan unas 16 veces por segundo; un solo reloj a la frecuencia de la pantalla desliza las
+/// barras de forma continua entre muestra y muestra y suaviza sus alturas, para que se vea fluida sin
+/// animar cada barra por separado. Con "reducir animaciones" solo se redibuja al llegar cada nivel.
 class RecordingWaveform extends StatefulWidget {
   const RecordingWaveform({super.key, required this.levels, this.height = 56, this.bars = 32});
 
@@ -103,42 +109,127 @@ class RecordingWaveform extends StatefulWidget {
   State<RecordingWaveform> createState() => _RecordingWaveformState();
 }
 
-class _RecordingWaveformState extends State<RecordingWaveform> {
-  late final List<double> _history = List.filled(widget.bars, 0.05, growable: true);
+class _RecordingWaveformState extends State<RecordingWaveform> with SingleTickerProviderStateMixin {
+  late final _wave = _WaveState(widget.bars);
+  late final Ticker _ticker = createTicker(_wave.tick);
+  StreamSubscription<double>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = widget.levels.listen(_wave.push);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _wave.still = MediaQuery.disableAnimationsOf(context);
+    if (_wave.still && _ticker.isActive) _ticker.stop();
+    if (!_wave.still && !_ticker.isActive) _ticker.start();
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _ticker.dispose();
+    _wave.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ExcludeSemantics(
-      child: StreamBuilder<double>(
-        stream: widget.levels,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            _history
-              ..removeAt(0)
-              ..add(math.max(0.05, snapshot.data!));
-          }
-          return SizedBox(
-            height: widget.height,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                for (final level in _history)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 100),
-                    width: 4,
-                    height: widget.height * level,
-                    decoration: BoxDecoration(
-                      color: Color.lerp(AppColors.tint60, AppColors.action, level),
-                      borderRadius: BorderRadius.circular(AppRadius.full),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
+      child: RepaintBoundary(
+        child: SizedBox(
+          height: widget.height,
+          width: double.infinity,
+          child: CustomPaint(painter: _WaveformPainter(_wave)),
+        ),
       ),
     );
   }
+}
+
+/// Estado de la onda: niveles recibidos, alturas suavizadas y fase del desplazamiento.
+class _WaveState extends ChangeNotifier {
+  _WaveState(int bars)
+    : targets = List.filled(bars + 1, _floor, growable: true),
+      shown = List.filled(bars + 1, _floor, growable: true);
+
+  static const _floor = 0.05;
+
+  /// Fracción de la distancia al nivel real que se recorre por cuadro de 60 Hz.
+  static const _smoothing = 0.25;
+
+  final List<double> targets;
+  final List<double> shown;
+  bool still = false;
+
+  /// De 0 a 1: cuánto se ha deslizado la onda desde el último nivel recibido.
+  double phase = 0;
+  Duration _lastTick = Duration.zero;
+  Duration _lastSample = Duration.zero;
+  Duration _interval = const Duration(milliseconds: 60);
+
+  void push(double level) {
+    targets
+      ..removeAt(0)
+      ..add(math.max(_floor, level));
+    shown
+      ..removeAt(0)
+      ..add(shown.last);
+    if (_lastTick > _lastSample) {
+      _interval = _lastTick - _lastSample;
+      _lastSample = _lastTick;
+    }
+    phase = 0;
+    if (still) {
+      shown.setAll(0, targets);
+      notifyListeners();
+    }
+  }
+
+  void tick(Duration elapsed) {
+    final frames = (elapsed - _lastTick).inMicroseconds / 16667;
+    _lastTick = elapsed;
+    final k = 1 - math.pow(1 - _smoothing, frames.clamp(0, 4));
+    for (var i = 0; i < shown.length; i++) {
+      shown[i] += (targets[i] - shown[i]) * k;
+    }
+    final sinceSample = (elapsed - _lastSample).inMicroseconds / math.max(1, _interval.inMicroseconds);
+    phase = sinceSample.clamp(0.0, 1.0);
+    notifyListeners();
+  }
+}
+
+class _WaveformPainter extends CustomPainter {
+  _WaveformPainter(this.wave) : super(repaint: wave);
+
+  final _WaveState wave;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final values = wave.shown;
+    final visible = values.length - 1;
+    final step = size.width / visible;
+    final barWidth = math.min(5.0, step * 0.6);
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    for (var i = 0; i < values.length; i++) {
+      // La barra más nueva queda en la última ranura; todas se deslizan a la izquierda entre muestras.
+      final x = step * (i - 0.5 - wave.phase);
+      final h = size.height * values[i];
+      final rect = Rect.fromCenter(center: Offset(x, size.height / 2), width: barWidth, height: h);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, Radius.circular(barWidth / 2)),
+        Paint()..color = Color.lerp(AppColors.tint60, AppColors.action, values[i])!,
+      );
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_WaveformPainter old) => old.wave != wave;
 }
 
 /// Tarjeta gris que ocupa el lugar de un elemento mientras carga.

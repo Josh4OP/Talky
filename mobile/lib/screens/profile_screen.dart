@@ -235,7 +235,7 @@ class _ConnectionCardState extends State<_ConnectionCard> {
                 tooltip: 'Copiar dirección de la API',
                 icon: const Icon(Icons.copy_rounded, color: AppColors.action),
                 onPressed: () async {
-                  await Clipboard.setData(const ClipboardData(text: AppConfig.apiBaseUrl));
+                  await Clipboard.setData(ClipboardData(text: AppConfig.apiBaseUrl));
                   if (context.mounted) {
                     ScaffoldMessenger.of(
                       context,

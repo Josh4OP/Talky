@@ -12,7 +12,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es');
   final client = http.Client();
-  final baseUrl = Uri.parse(AppConfig.apiBaseUrl);
+  final baseUrl = AppConfig.apiBaseUri;
   final session = SessionStore(client: client, baseUrl: baseUrl, storage: PreferencesSessionStorage());
   runApp(
     TalkyApp(

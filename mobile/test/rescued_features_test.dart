@@ -1,14 +1,18 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:talky/core/audio_recorder.dart';
+import 'package:talky/core/config.dart';
 import 'package:talky/data/demo_data.dart';
 import 'package:talky/models/analysis.dart';
 import 'package:talky/screens/processing_screen.dart';
 import 'package:talky/screens/welcome_screen.dart';
 import 'package:talky/state/history_controller.dart';
 import 'package:talky/state/preferences_controller.dart';
+import 'package:talky/widgets/sections.dart';
 
 import 'support/fakes.dart';
 
@@ -155,5 +159,56 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(popped, isTrue);
+  });
+
+  testWidgets('recording waveform follows levels and stops listening when removed', (tester) async {
+    final levels = StreamController<double>.broadcast();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: RecordingWaveform(levels: levels.stream)),
+      ),
+    );
+    for (var i = 0; i < 50; i++) {
+      levels.add(i.isEven ? 1.0 : 0.2);
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(tester.takeException(), isNull);
+    expect(levels.hasListener, isTrue);
+    await tester.pumpWidget(const SizedBox());
+    expect(levels.hasListener, isFalse);
+    await levels.close();
+  });
+
+  test('wav header describes 16-bit mono PCM at the given rate', () {
+    final pcm = Uint8List(32000);
+    final wav = wavFromPcm16(pcm, sampleRate: 16000);
+    final header = ByteData.sublistView(wav, 0, 44);
+    expect(String.fromCharCodes(wav.sublist(0, 4)), 'RIFF');
+    expect(String.fromCharCodes(wav.sublist(8, 12)), 'WAVE');
+    expect(header.getUint32(24, Endian.little), 16000);
+    expect(header.getUint16(34, Endian.little), 16);
+    expect(header.getUint32(40, Endian.little), 32000);
+    expect(wav.length, 44 + 32000);
+  });
+
+  group('API address', () {
+    test('a valid define wins', () {
+      expect(
+        AppConfig.resolveApiUri('http://192.168.1.20:8000', isWeb: true, pageHost: 'localhost').toString(),
+        'http://192.168.1.20:8000',
+      );
+    });
+
+    test('a broken define on web falls back to the page host on port 8000', () {
+      expect(
+        AppConfig.resolveApiUri('http://', isWeb: true, pageHost: '127.0.0.1').toString(),
+        'http://127.0.0.1:8000',
+      );
+      expect(AppConfig.resolveApiUri('', isWeb: true, pageHost: 'localhost').toString(), 'http://localhost:8000');
+    });
+
+    test('without a define on the phone it uses the Android emulator address', () {
+      expect(AppConfig.resolveApiUri('', isWeb: false).toString(), 'http://10.0.2.2:8000');
+    });
   });
 }
