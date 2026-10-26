@@ -76,7 +76,7 @@ class _HomeShellState extends State<HomeShell> {
               unselectedLabelTextStyle: AppText.caption.copyWith(color: AppColors.inkMuted),
               leading: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: Text('talky', style: AppText.title.copyWith(color: AppColors.primary)),
+                child: Image.asset('assets/mascot/logo_blue.png', width: 64, semanticLabel: 'Talky'),
               ),
               destinations: [
                 for (final (icon, selected, label) in _destinations)

@@ -78,6 +78,16 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
             children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Image.asset(
+                  'assets/mascot/logo_blue.png',
+                  height: 34,
+                  filterQuality: FilterQuality.medium,
+                  semanticLabel: 'Talky',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
               const _Greeting(),
               const SizedBox(height: AppSpacing.lg),
               _NewAnalysisCard(onAnalyze: _analyze),
