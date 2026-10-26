@@ -205,21 +205,13 @@ class _KeyMetrics extends StatelessWidget {
     final a = analysis;
     return MetricRow(
       children: [
-        Expanded(
-          child: MetricTile(value: Formatters.duration(a.durationS), unit: 'duración'),
+        MetricTile(value: Formatters.duration(a.durationS), unit: 'duración'),
+        MetricTile(
+          value: Formatters.number(a.wordsPerMinute, decimals: 0),
+          unit: 'palabras/min',
+          label: Formatters.pace(a.wordsPerMinute),
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: MetricTile(
-            value: Formatters.number(a.wordsPerMinute, decimals: 0),
-            unit: 'palabras/min',
-            label: Formatters.pace(a.wordsPerMinute),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: MetricTile(value: Formatters.number(a.fillersPerMinute), unit: 'muletillas/min'),
-        ),
+        MetricTile(value: Formatters.number(a.fillersPerMinute), unit: 'muletillas/min'),
       ],
     );
   }
