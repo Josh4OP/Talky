@@ -34,9 +34,8 @@ class SplashToHome extends StatefulWidget {
 enum _Phase { loading, failed, revealing, done }
 
 class _SplashToHomeState extends State<SplashToHome> with TickerProviderStateMixin {
-  static const _mascotSize = 180.0;
-
-  final _mascotKey = GlobalKey();
+  /// Rayitas de "voz" junto al pico: de ahí nace el círculo que revela el inicio.
+  final _voiceKey = GlobalKey();
   late final _float = AnimationController(vsync: this, duration: const Duration(seconds: 3));
   late final _dot = AnimationController(vsync: this, duration: const Duration(milliseconds: 350));
   late final _expand = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
@@ -90,7 +89,7 @@ class _SplashToHomeState extends State<SplashToHome> with TickerProviderStateMix
       return;
     }
     if (!mounted) return;
-    _origin = _eyePosition();
+    _origin = _voicePosition();
     setState(() => _phase = _Phase.revealing);
     if (_still) {
       await _expand.animateTo(1, duration: const Duration(milliseconds: 200));
@@ -109,14 +108,11 @@ class _SplashToHomeState extends State<SplashToHome> with TickerProviderStateMix
     _play();
   }
 
-  Offset _eyePosition() {
-    final mascot = _mascotKey.currentContext?.findRenderObject() as RenderBox?;
+  Offset _voicePosition() {
+    final voice = _voiceKey.currentContext?.findRenderObject() as RenderBox?;
     final stack = context.findRenderObject() as RenderBox?;
-    if (mascot == null || stack == null) return Offset.zero;
-    final topLeft = mascot.localToGlobal(Offset.zero, ancestor: stack);
-    return topLeft +
-        Offset(silhouetteEye.dx * mascot.size.width, silhouetteEye.dy * mascot.size.height) +
-        widget.originAdjust;
+    if (voice == null || stack == null) return Offset.zero;
+    return voice.localToGlobal(voice.size.center(Offset.zero), ancestor: stack) + widget.originAdjust;
   }
 
   @override
@@ -175,28 +171,29 @@ class _SplashToHomeState extends State<SplashToHome> with TickerProviderStateMix
     final failed = _phase == _Phase.failed;
     return Semantics(
       label: failed ? null : 'Talky está cargando',
-      child: SkyBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              const Spacer(flex: 3),
-              AnimatedBuilder(
-                animation: _float,
-                builder: (context, child) =>
-                    Transform.translate(offset: Offset(0, 4 * math.sin(2 * math.pi * _float.value)), child: child),
-                child: TalkyMascot(
-                  key: _mascotKey,
-                  state: failed ? MascotState.sad : MascotState.silhouette,
-                  size: _mascotSize,
+      child: Material(
+        type: MaterialType.transparency,
+        child: SkyBackground(
+          child: SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 3),
+                AnimatedBuilder(
+                  animation: _float,
+                  builder: (context, child) =>
+                      Transform.translate(offset: Offset(0, 4 * math.sin(2 * math.pi * _float.value)), child: child),
+                  child: failed
+                      ? const TalkyMascot(state: MascotState.sad, size: 160)
+                      : _Logo(voiceKey: _voiceKey, pulse: _float),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: failed ? _ErrorCard(error: _error, onRetry: _retry) : const SizedBox(height: 0),
-              ),
-              const Spacer(flex: 4),
-            ],
+                const SizedBox(height: AppSpacing.lg),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: failed ? _ErrorCard(error: _error, onRetry: _retry) : const SizedBox(height: 0),
+                ),
+                const Spacer(flex: 4),
+              ],
+            ),
           ),
         ),
       ),
@@ -242,4 +239,138 @@ class _ErrorCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Logotipo del splash: el loro en silueta sobre el logotipo blanco "talky" (`assets/mascot/logo_white.png`,
+/// limpiado desde `mobile/Vocetos/`). Entra con el loro cayendo con rebote y la palabra subiendo; luego de las
+/// rayitas de voz salen ondas, como si Talky hablara. El círculo del revelado nace en esas rayitas.
+class _Logo extends StatefulWidget {
+  const _Logo({required this.voiceKey, required this.pulse});
+
+  final GlobalKey voiceKey;
+
+  /// Ciclo de flotación del splash; marca el ritmo de las ondas de voz.
+  final Animation<double> pulse;
+
+  @override
+  State<_Logo> createState() => _LogoState();
+}
+
+class _LogoState extends State<_Logo> with SingleTickerProviderStateMixin {
+  static const _parrot = 120.0;
+  static const _wordWidth = 230.0;
+  static const _wordHeight = _wordWidth * 353 / 900;
+
+  /// Centro de las rayitas de voz dentro del logotipo, como fracción de la imagen.
+  static const _voice = Offset(0.934, 0.186);
+
+  late final _entry = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+  late final _drop = CurvedAnimation(
+    parent: _entry,
+    curve: const Interval(0, 0.6, curve: Curves.easeOutBack),
+  );
+  late final _rise = CurvedAnimation(
+    parent: _entry,
+    curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _entry.value = 1;
+    } else if (_entry.value == 0 && !_entry.isAnimating) {
+      _entry.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _drop.dispose();
+    _rise.dispose();
+    _entry.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBuilder(
+          animation: _drop,
+          builder: (context, child) => Opacity(
+            opacity: _drop.value.clamp(0.0, 1.0),
+            child: Transform.translate(
+              offset: Offset(0, -60 * (1 - _drop.value)),
+              child: Transform.scale(scale: 0.7 + 0.3 * _drop.value, child: child),
+            ),
+          ),
+          child: const TalkyMascot(state: MascotState.silhouette, size: _parrot),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AnimatedBuilder(
+          animation: _rise,
+          builder: (context, child) => Opacity(
+            opacity: _rise.value,
+            child: Transform.translate(offset: Offset(0, 24 * (1 - _rise.value)), child: child),
+          ),
+          child: SizedBox(
+            width: _wordWidth,
+            height: _wordHeight,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Image.asset(
+                  'assets/mascot/logo_white.png',
+                  width: _wordWidth,
+                  height: _wordHeight,
+                  filterQuality: FilterQuality.medium,
+                  semanticLabel: 'Talky',
+                ),
+                Positioned(
+                  left: _voice.dx * _wordWidth - 30,
+                  top: _voice.dy * _wordHeight - 30,
+                  child: SizedBox(
+                    key: widget.voiceKey,
+                    width: 60,
+                    height: 60,
+                    child: IgnorePointer(child: CustomPaint(painter: _VoiceWavesPainter(widget.pulse, _entry))),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Ondas blancas que salen de las rayitas de voz, dos por ciclo de flotación.
+class _VoiceWavesPainter extends CustomPainter {
+  _VoiceWavesPainter(this.pulse, this.entry) : super(repaint: Listenable.merge([pulse, entry]));
+
+  final Animation<double> pulse;
+  final Animation<double> entry;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (entry.value < 1) return;
+    final center = size.center(Offset.zero);
+    for (final offset in const [0.0, 0.5]) {
+      final t = (pulse.value * 2 + offset) % 1;
+      canvas.drawCircle(
+        center,
+        6 + 22 * t,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5 * (1 - t) + 0.5
+          ..color = AppColors.surface.withValues(alpha: 0.7 * (1 - t)),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_VoiceWavesPainter old) => old.pulse != pulse || old.entry != entry;
 }
