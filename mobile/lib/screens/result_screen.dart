@@ -203,8 +203,7 @@ class _KeyMetrics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = analysis;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return MetricRow(
       children: [
         Expanded(
           child: MetricTile(value: Formatters.duration(a.durationS), unit: 'duración'),
@@ -240,16 +239,15 @@ class _PausesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: AppSpacing.sm,
-            crossAxisSpacing: AppSpacing.sm,
-            childAspectRatio: 2.1,
+          MetricRow(
             children: [
               MetricTile(value: '${pauses.longPauses}', unit: 'pausas largas', background: _soft),
               MetricTile(value: '${Formatters.number(pauses.longestS)} s', unit: 'pausa más larga', background: _soft),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          MetricRow(
+            children: [
               MetricTile(
                 value: '${Formatters.number(pauses.secondsInPauses)} s',
                 unit: 'tiempo en silencio',
@@ -281,25 +279,16 @@ class _CoherenceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          MetricRow(
             children: [
-              if (similarity != null) ...[
-                Expanded(
-                  child: MetricTile(
-                    value: Formatters.percent(similarity),
-                    unit: 'similitud entre ideas seguidas',
-                    background: _soft,
-                  ),
+              if (similarity != null)
+                MetricTile(
+                  value: Formatters.percent(similarity),
+                  unit: 'similitud entre ideas seguidas',
+                  background: _soft,
                 ),
-                const SizedBox(width: AppSpacing.sm),
-              ],
-              Expanded(
-                child: MetricTile(value: '${coherence.topicJumps}', unit: 'saltos de tema', background: _soft),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: MetricTile(value: '${coherence.repeatedPairs}', unit: 'ideas repetidas', background: _soft),
-              ),
+              MetricTile(value: '${coherence.topicJumps}', unit: 'saltos de tema', background: _soft),
+              MetricTile(value: '${coherence.repeatedPairs}', unit: 'ideas repetidas', background: _soft),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),

@@ -130,19 +130,11 @@ class _HistoryStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return MetricRow(
       children: [
-        Expanded(
-          child: MetricTile(value: '${history.total}', unit: 'análisis'),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: MetricTile(value: Formatters.number(history.averageWordsPerMinute, decimals: 0), unit: 'ppm promedio'),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: MetricTile(value: '${history.loadedFillers}', unit: 'muletillas'),
-        ),
+        MetricTile(value: '${history.total}', unit: 'análisis'),
+        MetricTile(value: Formatters.number(history.averageWordsPerMinute, decimals: 0), unit: 'ppm promedio'),
+        MetricTile(value: '${history.loadedFillers}', unit: 'muletillas'),
       ],
     );
   }

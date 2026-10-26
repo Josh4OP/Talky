@@ -72,56 +72,61 @@ class _HomeScreenState extends State<HomeScreen> {
     final history = context.watch<HistoryController>();
     final recent = history.items.take(3).toList();
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
-        children: [
-          const _Greeting(),
-          const SizedBox(height: AppSpacing.lg),
-          _NewAnalysisCard(onAnalyze: _analyze),
-          const SizedBox(height: AppSpacing.sm),
-          Center(
-            child: TextButton.icon(
-              onPressed: _openExample,
-              icon: const Icon(Icons.auto_awesome_outlined),
-              label: const Text('Ver un resultado de ejemplo'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SectionHeader(
-            eyebrow: 'ACTIVIDAD',
-            title: 'Análisis recientes',
-            subtitle: 'Tu progreso, ordenado por fecha.',
-            trailing: TextButton(onPressed: widget.onShowHistory, child: const Text('Ver historial')),
-          ),
-          if (history.showingDemo) ...[const DemoBanner(), const SizedBox(height: AppSpacing.sm)],
-          if (!history.loaded && history.loading)
-            for (var i = 0; i < 2; i++) ...[const SkeletonCard(), const SizedBox(height: AppSpacing.sm)]
-          else if (recent.isEmpty)
-            Text(
-              'Todavía no tienes análisis. El primero aparecerá aquí.',
-              style: AppText.body.copyWith(color: AppColors.inkMuted),
-            )
-          else
-            for (final item in recent) ...[
-              AnalysisCard(item: item, onTap: () => _open(history.open(item))),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
             children: [
-              const Icon(Icons.lock_outline_rounded, size: 18, color: AppColors.inkMuted),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  'Tu audio se envía para transcribirse y no se guarda. El historial conserva métricas, síntesis y '
-                  'citas cortas.',
-                  style: AppText.caption.copyWith(color: AppColors.inkMuted),
+              const _Greeting(),
+              const SizedBox(height: AppSpacing.lg),
+              _NewAnalysisCard(onAnalyze: _analyze),
+              const SizedBox(height: AppSpacing.sm),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _openExample,
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  label: const Text('Ver un resultado de ejemplo'),
                 ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SectionHeader(
+                eyebrow: 'ACTIVIDAD',
+                title: 'Análisis recientes',
+                subtitle: 'Tu progreso, ordenado por fecha.',
+                trailing: TextButton(onPressed: widget.onShowHistory, child: const Text('Ver historial')),
+              ),
+              if (history.showingDemo) ...[const DemoBanner(), const SizedBox(height: AppSpacing.sm)],
+              if (!history.loaded && history.loading)
+                for (var i = 0; i < 2; i++) ...[const SkeletonCard(), const SizedBox(height: AppSpacing.sm)]
+              else if (recent.isEmpty)
+                Text(
+                  'Todavía no tienes análisis. El primero aparecerá aquí.',
+                  style: AppText.body.copyWith(color: AppColors.inkMuted),
+                )
+              else
+                for (final item in recent) ...[
+                  AnalysisCard(item: item, onTap: () => _open(history.open(item))),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.lock_outline_rounded, size: 18, color: AppColors.inkMuted),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Tu audio se envía para transcribirse y no se guarda. El historial conserva métricas, síntesis y '
+                      'citas cortas.',
+                      style: AppText.caption.copyWith(color: AppColors.inkMuted),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -251,15 +256,7 @@ class _NewAnalysisCardState extends State<_NewAnalysisCard> {
             style: AppText.body.copyWith(color: AppColors.inkMuted),
           ),
           const SizedBox(height: AppSpacing.md),
-          SegmentedButton<_Mode>(
-            segments: const [
-              ButtonSegment(value: _Mode.upload, icon: Icon(Icons.upload_rounded), label: Text('Subir archivo')),
-              ButtonSegment(value: _Mode.record, icon: Icon(Icons.mic_none_rounded), label: Text('Grabar')),
-            ],
-            selected: {_mode},
-            onSelectionChanged: _recording || _busy ? null : (s) => setState(() => _mode = s.first),
-            showSelectedIcon: false,
-          ),
+          _ModeToggle(selected: _mode, onChanged: _recording || _busy ? null : (mode) => setState(() => _mode = mode)),
           const SizedBox(height: AppSpacing.md),
           if (_mode == _Mode.upload)
             _PickArea(
@@ -292,6 +289,61 @@ class _NewAnalysisCardState extends State<_NewAnalysisCard> {
             style: AppText.caption.copyWith(color: AppColors.inkMuted),
             textAlign: TextAlign.center,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Selector "Subir archivo / Grabar" con los colores de marca.
+class _ModeToggle extends StatelessWidget {
+  const _ModeToggle({required this.selected, required this.onChanged});
+
+  final _Mode selected;
+  final ValueChanged<_Mode>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: AppColors.tint20, borderRadius: BorderRadius.circular(AppRadius.full)),
+      child: Row(
+        children: [
+          for (final (mode, icon, label) in const [
+            (_Mode.upload, Icons.upload_rounded, 'Subir archivo'),
+            (_Mode.record, Icons.mic_none_rounded, 'Grabar'),
+          ])
+            Expanded(
+              child: Semantics(
+                button: true,
+                selected: mode == selected,
+                child: GestureDetector(
+                  onTap: onChanged == null ? null : () => onChanged!(mode),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: mode == selected ? AppColors.surface : Colors.transparent,
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(icon, size: 18, color: mode == selected ? AppColors.action : AppColors.inkMuted),
+                        const SizedBox(width: 6),
+                        Text(
+                          label,
+                          style: AppText.bodyStrong.copyWith(
+                            fontSize: 14,
+                            color: mode == selected ? AppColors.action : AppColors.inkMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

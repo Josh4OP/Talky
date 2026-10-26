@@ -68,6 +68,28 @@ class MetricTile extends StatelessWidget {
   }
 }
 
+/// Fila de tarjetas del mismo ancho y la misma altura.
+class MetricRow extends StatelessWidget {
+  const MetricRow({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.sm),
+            Expanded(child: children[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 /// Puntaje de 1 a 10 con barra, descripción y rango entre modelos (componente "Puntaje" de Figma).
 class ScoreCard extends StatelessWidget {
   const ScoreCard({super.key, required this.aspect, required this.score, this.description, this.range, this.note});
