@@ -18,6 +18,21 @@ abstract final class Formatters {
     return '${number(bytes / (1024 * 1024))} MB';
   }
 
+  static String greeting(DateTime now) {
+    if (now.hour < 12) return 'Buenos días';
+    if (now.hour < 19) return 'Buenas tardes';
+    return 'Buenas noches';
+  }
+
+  static String percent(double? ratio) => ratio == null ? '-' : '${(ratio * 100).round()} %';
+
+  /// Nombre del audio sin extensión ni guiones bajos, para mostrarlo.
+  static String cleanName(String filename) {
+    final dot = filename.lastIndexOf('.');
+    final base = dot > 0 ? filename.substring(0, dot) : filename;
+    return base.replaceAll(RegExp(r'[_-]+'), ' ').trim();
+  }
+
   /// Etiqueta orientativa del ritmo (ver `08-flutter-app.md`).
   static String pace(double? wordsPerMinute) {
     if (wordsPerMinute == null) return '';

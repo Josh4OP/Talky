@@ -70,6 +70,17 @@ Reglas de animación:
 4. **Resultados**: el orden y las reglas de `08-flutter-app.md` (resumen con la mascota hablando, datos clave con la etiqueta de ritmo, tres puntajes y aviso de desacuerdo, gráfico de muletillas, gráfico de ritmo, pausas, eventos acústicos si no son `null`, fortalezas, aspectos por mejorar, recomendaciones, evidencias y avisos plegables). El gráfico de ritmo ignora visualmente una última ventana de 0 ppm por silencio final.
 5. **Historial**: lista paginada (`limit=20`), abrir, borrar con confirmación y estado vacío con la mascota y un botón hacia el inicio.
 
+### 4b. Rescatado de la primera versión del front (commit `6e6c53b`)
+
+Se recuperó, con la estética actual, el trabajo del primer avance de la rama `front`:
+
+- Bienvenida en la primera apertura (texto, chips y beneficios originales); se puede repetir desde Perfil.
+- Grabar con el micrófono además de subir un archivo, con onda que sigue el nivel real. El temporal de la grabación se borra apenas se leen sus bytes.
+- Modo de ejemplo con el resultado de prueba original y aviso visible; sirve para la demo sin servidor o sin cuota.
+- Tercera pestaña Perfil y ajustes: sesión del dispositivo, reducir animaciones, modo de ejemplo, prueba de conexión con la API, privacidad y créditos.
+- Inicio con saludo según la hora y análisis recientes; procesando con consejos "Mientras esperas" y confirmación al salir; resultados con encabezados por sección, rango de puntajes, coherencia, porcentaje de citas verificadas y nota ética; historial con búsqueda y resumen.
+- Barra lateral en pantallas anchas (web y escritorio).
+
 ### 5. Sesión y red
 
 - `core/api_client.dart` envía `Authorization: Bearer <token>`; deja de enviar `X-User-Id`.
@@ -77,13 +88,13 @@ Reglas de animación:
 - Ante un 401: un único intento de renovar y repetir la petición. Si el token ya venció, se pide uno nuevo y se avisa que el historial anterior no está disponible en este dispositivo.
 - Tiempo de espera de 120 s en `POST /analyses`. Errores (400, 401, 404, 413, 422, 503 y sin conexión) en mensajes en español.
 
-No hacer: procesar audio en el teléfono, registro con contraseña, traducciones, modo oscuro antes de terminar lo demás. La grabación dentro de la app queda como mejora futura.
+No hacer: procesar audio en el teléfono, registro con contraseña, traducciones, modo oscuro antes de terminar lo demás.
 
 ## Contrato
 
 - **Paleta** (guía de marca): `primary #4FBEFF`, `tint80 #74CCFF`, `tint60 #99D9FF`, `tint40 #BFE6FF`, `tint20 #E3F4FF`, `white #FFFFFF`. Texto principal azul marino oscuro con contraste AA sobre blanco y sobre `tint20`; el texto blanco sobre `primary` solo en tamaños de 18 sp o más, o en negrita de 14 sp o más.
 - **Tipografía**: Nunito (títulos y cifras), Nunito Sans (texto). Mínimo 14 sp.
-- **Dependencias**: `provider`, `http`, `file_picker`, `fl_chart`, `shared_preferences` e `intl`. Nada de Rive, Lottie ni paquetes de animación: todo con el SDK. La grabación dentro de la app (`record`) se retiró del MVP.
+- **Dependencias**: `provider`, `http`, `file_picker`, `fl_chart`, `shared_preferences`, `intl`, y para grabar con el micrófono `record`, `path_provider` y `cross_file`. Nada de Rive, Lottie ni paquetes de animación: todo con el SDK.
 - **Configuración**: `--dart-define=API_BASE_URL=...` (por defecto `http://10.0.2.2:8000`).
 - **API**: `07-api-contract.md` más los endpoints de sesión de T19. Todo campo `null` oculta su sección sin romper la pantalla.
 

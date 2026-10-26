@@ -69,6 +69,7 @@ void main() {
   group('HistoryController', () {
     test('loads pages until reaching the total', () async {
       final h = HistoryController(
+        preferences: memoryPreferences(),
         api: apiWith((request) async {
           final offset = int.parse(request.url.queryParameters['offset']!);
           return jsonResponse({
@@ -86,6 +87,7 @@ void main() {
 
     test('delete restores the item when the API fails', () async {
       final h = HistoryController(
+        preferences: memoryPreferences(),
         api: apiWith((request) async {
           if (request.method == 'DELETE') return jsonResponse({'detail': 'error'}, 500);
           return jsonResponse({
@@ -102,6 +104,7 @@ void main() {
 
     test('delete treats 404 as already deleted', () async {
       final h = HistoryController(
+        preferences: memoryPreferences(),
         api: apiWith((request) async {
           if (request.method == 'DELETE') return jsonResponse({'detail': 'Análisis no encontrado.'}, 404);
           return jsonResponse({
@@ -117,7 +120,10 @@ void main() {
     });
 
     test('a load error is kept for the screen', () async {
-      final h = HistoryController(api: apiWith((_) async => throw http.ClientException('sin red')));
+      final h = HistoryController(
+        preferences: memoryPreferences(),
+        api: apiWith((_) async => throw http.ClientException('sin red')),
+      );
       await h.refresh();
       expect(h.error?.isConnection, isTrue);
       expect(h.loading, isFalse);

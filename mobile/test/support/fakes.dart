@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:talky/core/api_client.dart';
 import 'package:talky/core/session_store.dart';
+import 'package:talky/state/preferences_controller.dart';
 
 final baseUrl = Uri.parse('http://talky.test');
 
@@ -97,3 +98,16 @@ Map<String, Object?> minimalAnalysisJson() => fullAnalysisJson()
   ..['coherencia'] = null
   ..['eventos_acusticos'] = null
   ..['verificacion'] = null;
+
+/// Preferencias en memoria para no tocar `shared_preferences`.
+class MemoryPreferencesStorage implements PreferencesStorage {
+  final values = <String, bool>{};
+
+  @override
+  Future<bool?> readBool(String key) async => values[key];
+
+  @override
+  Future<void> writeBool(String key, bool value) async => values[key] = value;
+}
+
+PreferencesController memoryPreferences() => PreferencesController(storage: MemoryPreferencesStorage());

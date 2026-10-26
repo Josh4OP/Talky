@@ -21,22 +21,24 @@ mobile/
       api_exception.dart              # códigos HTTP -> mensajes en español
       session_store.dart              # token de dispositivo (T19): pedir, guardar, renovar
       audio_picker.dart               # file_picker limitado a los formatos de la API
+      audio_recorder.dart             # grabación con el micrófono (record); borra el temporal al leerlo
       config.dart                     # API_BASE_URL, tiempos de espera, límites
       formatters.dart
+    data/demo_data.dart               # resultado e historial de ejemplo, siempre marcados
     models/                           # Analysis, AnalysisSummary, HistoryPage (tolerantes a null)
-    state/                            # AnalysisController, HistoryController (ChangeNotifier)
+    state/                            # AnalysisController, HistoryController, PreferencesController
     theme/                            # tokens de la colección "Talky" de Figma y estilos Nunito
-    screens/                          # splash_to_home, home_shell, home, processing, result, history
+    screens/                          # splash_to_home, welcome, home_shell, home, processing, result, history, profile
     widgets/
       mascot/talky_mascot.dart        # mascota animada por estado
       sky/                            # cielo, nubes con parallax y revelado circular
-      cards.dart, charts.dart
-  test/                               # modelos, cliente, sesión, controladores, mascota y splash
+      cards.dart, charts.dart, sections.dart, analysis_card.dart
+  test/                               # modelos, cliente, sesión, controladores, mascota, splash y lo rescatado
 ```
 
 ## Dependencias
 
-`provider`, `http`, `file_picker`, `fl_chart`, `shared_preferences`, `intl`. Nada más sin justificación. Las animaciones se hacen con el SDK (sin Rive ni Lottie).
+`provider`, `http`, `file_picker`, `fl_chart`, `shared_preferences`, `intl`, y para grabar `record`, `path_provider` y `cross_file`. Nada más sin justificación. Las animaciones se hacen con el SDK (sin Rive ni Lottie).
 
 ## Pantallas
 
