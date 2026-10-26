@@ -36,9 +36,6 @@ const _assets = {
 
 String mascotAsset(MascotState state) => _assets[state]!;
 
-/// Ojo del loro en la silueta, como fracción de la imagen (origen del revelado del splash).
-const silhouetteEye = Offset(0.628, 0.383);
-
 /// Bombillo de la imagen de pensando, como fracción de la imagen.
 const _bulb = Offset(0.775, 0.24);
 

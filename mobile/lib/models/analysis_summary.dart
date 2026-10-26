@@ -7,6 +7,7 @@ class AnalysisSummary {
     required this.durationS,
     required this.wordsPerMinute,
     required this.totalFillers,
+    this.isDemo = false,
   });
 
   final String id;
@@ -15,6 +16,7 @@ class AnalysisSummary {
   final double? durationS;
   final double? wordsPerMinute;
   final int totalFillers;
+  final bool isDemo;
 
   factory AnalysisSummary.fromJson(Map<String, dynamic> json) => AnalysisSummary(
     id: json['id'] as String,

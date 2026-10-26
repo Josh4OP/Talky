@@ -18,6 +18,7 @@ class Analysis {
     required this.synthesis,
     required this.evidences,
     required this.verification,
+    this.isDemo = false,
   });
 
   final String id;
@@ -38,6 +39,9 @@ class Analysis {
   final Synthesis? synthesis;
   final List<Evidence> evidences;
   final Verification? verification;
+
+  /// Resultado de ejemplo creado por la app (modo de ejemplo); nunca viene del servidor.
+  final bool isDemo;
 
   int get totalFillers => fillers.values.fold(0, (a, b) => a + b);
 
@@ -91,12 +95,23 @@ class Pauses {
 }
 
 class Coherence {
-  const Coherence({required this.topicJumps, required this.repeatedPairs});
+  const Coherence({
+    required this.windows,
+    required this.meanSimilarity,
+    required this.topicJumps,
+    required this.repeatedPairs,
+  });
 
+  final int windows;
+
+  /// Similitud media entre tramos vecinos (0 a 1); `null` si no se pudo calcular.
+  final double? meanSimilarity;
   final int topicJumps;
   final int repeatedPairs;
 
   factory Coherence.fromJson(Map<String, dynamic> json) => Coherence(
+    windows: (json['windows'] as num? ?? 0).toInt(),
+    meanSimilarity: _double(json['mean_adjacent_similarity']),
     topicJumps: (json['topic_jumps'] as List? ?? const []).length,
     repeatedPairs: (json['repeated_pairs'] as List? ?? const []).length,
   );
@@ -128,13 +143,21 @@ class AcousticEvents {
 }
 
 class Score {
-  const Score({required this.median, required this.disagreement});
+  const Score({required this.median, this.min, this.max, required this.disagreement});
 
   final double median;
+
+  /// Puntaje más bajo y más alto entre los modelos; `null` si la API no los envía.
+  final double? min;
+  final double? max;
   final bool disagreement;
 
-  factory Score.fromJson(Map<String, dynamic> json) =>
-      Score(median: _double(json['mediana']) ?? 0, disagreement: json['desacuerdo'] as bool? ?? false);
+  factory Score.fromJson(Map<String, dynamic> json) => Score(
+    median: _double(json['mediana']) ?? 0,
+    min: _double(json['min']),
+    max: _double(json['max']),
+    disagreement: json['desacuerdo'] as bool? ?? false,
+  );
 }
 
 class Synthesis {

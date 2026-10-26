@@ -26,8 +26,12 @@ class AnalysisController extends ChangeNotifier {
 
   Future<void> pick() async {
     final picked = await _pickAudio();
-    if (picked == null) return;
-    audio = picked;
+    if (picked != null) useAudio(picked);
+  }
+
+  /// Usa un audio ya listo (por ejemplo, una grabación del micrófono).
+  void useAudio(AudioUpload upload) {
+    audio = upload;
     status = AnalysisStatus.picked;
     error = null;
     notifyListeners();

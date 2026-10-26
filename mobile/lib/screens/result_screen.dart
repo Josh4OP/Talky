@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/cards.dart';
 import '../widgets/charts.dart';
 import '../widgets/mascot/talky_mascot.dart';
+import '../widgets/sections.dart';
 
 /// Resultado de un análisis. Toda sección sin datos se oculta.
 class ResultScreen extends StatelessWidget {
@@ -14,92 +15,181 @@ class ResultScreen extends StatelessWidget {
 
   final Analysis analysis;
 
-  static const _aspects = {'organizacion': 'Organización', 'claridad': 'Claridad', 'repeticion': 'Repetición'};
+  static const _aspects = {
+    'organizacion': ('Organización', 'Cómo se ordenan y conectan tus ideas.'),
+    'claridad': ('Claridad', 'Qué tan fácil es seguir tu explicación.'),
+    'repeticion': ('Repetición', 'Cuánto vuelves sobre la misma idea.'),
+  };
 
   @override
   Widget build(BuildContext context) {
     final a = analysis;
     final synthesis = a.synthesis;
-    const gap = SizedBox(height: AppSpacing.md);
+    const gap = SizedBox(height: AppSpacing.lg);
+    const small = SizedBox(height: AppSpacing.sm);
+    final scores = [
+      for (final entry in _aspects.entries)
+        if (a.scores[entry.key] case final score?) (entry.value, score),
+    ];
+    final verificationRate = a.verification?.rate;
     return Scaffold(
-      appBar: AppBar(title: const Text('Tu resultado')),
+      appBar: AppBar(title: Text(a.isDemo ? 'Resultado de ejemplo' : 'Resultado del análisis')),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
-          children: [
-            _Summary(text: synthesis?.summary ?? ''),
-            gap,
-            _KeyMetrics(analysis: a),
-            for (final entry in _aspects.entries)
-              if (a.scores[entry.key] case final score?) ...[
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
+              children: [
+                if (a.isDemo) ...[
+                  const DemoBanner(
+                    message:
+                        'Este resultado es un ejemplo creado por la app. No proviene de tu voz ni de tu historial.',
+                  ),
+                  small,
+                ],
+                _Hero(summary: synthesis?.summary ?? ''),
+                small,
+                _KeyMetrics(analysis: a),
+                if (scores.isNotEmpty) ...[
+                  gap,
+                  const SectionHeader(
+                    eyebrow: 'PUNTAJES',
+                    title: 'Cómo se percibe tu exposición',
+                    subtitle: 'Cada tarjeta muestra la mediana de los modelos y el rango en el que coinciden.',
+                  ),
+                  for (final ((label, description), score) in scores) ...[
+                    ScoreCard(
+                      aspect: label,
+                      description: description,
+                      score: score.median,
+                      range: score.min != null && score.max != null ? (score.min!, score.max!) : null,
+                      note: score.disagreement ? 'Los modelos no coinciden del todo en este puntaje.' : null,
+                    ),
+                    small,
+                  ],
+                ],
+                if (a.fillers.isNotEmpty) ...[
+                  gap,
+                  SectionHeader(
+                    eyebrow: 'MULETILLAS',
+                    title: 'Palabras que se repiten',
+                    subtitle:
+                        'Detectadas en la transcripción, de mayor a menor frecuencia. ${a.totalFillers} en total.',
+                  ),
+                  SectionCard(child: FillerChart(counts: a.fillers)),
+                ],
+                if (RhythmChart.visibleWindows(a.rhythm).length > 1) ...[
+                  gap,
+                  const SectionHeader(
+                    eyebrow: 'RITMO',
+                    title: 'Tu velocidad al hablar',
+                    subtitle: 'Palabras por minuto cada 30 segundos. La franja clara es el rango adecuado.',
+                  ),
+                  SectionCard(child: RhythmChart(windows: a.rhythm)),
+                ],
+                if (a.pauses case final pauses?) ...[
+                  gap,
+                  const SectionHeader(eyebrow: 'PAUSAS', title: 'Los silencios también cuentan'),
+                  _PausesCard(pauses: pauses),
+                ],
+                if (a.acousticEvents case final events?) ...[
+                  gap,
+                  const SectionHeader(
+                    eyebrow: 'EVENTOS DE VOZ',
+                    title: 'Lo que se escuchó',
+                    subtitle: 'Muletillas vocales y tatareos detectados en el audio, con el momento en que ocurren.',
+                  ),
+                  _EventsCard(events: events),
+                ],
+                if (a.coherence case final coherence?) ...[
+                  gap,
+                  const SectionHeader(eyebrow: 'COHERENCIA', title: 'El hilo de tus ideas'),
+                  _CoherenceCard(coherence: coherence),
+                ],
+                if (synthesis != null &&
+                    (synthesis.strengths.isNotEmpty ||
+                        synthesis.improvements.isNotEmpty ||
+                        synthesis.recommendations.isNotEmpty)) ...[
+                  gap,
+                  const SectionHeader(eyebrow: 'RETROALIMENTACIÓN', title: 'Qué mantener y qué ajustar'),
+                  if (synthesis.strengths.isNotEmpty) ...[
+                    SectionCard(
+                      title: 'Fortalezas',
+                      child: BulletList(items: synthesis.strengths, color: AppColors.success),
+                    ),
+                    small,
+                  ],
+                  if (synthesis.improvements.isNotEmpty) ...[
+                    SectionCard(
+                      title: 'Aspectos por mejorar',
+                      child: BulletList(items: synthesis.improvements, color: AppColors.warning),
+                    ),
+                    small,
+                  ],
+                  if (synthesis.recommendations.isNotEmpty)
+                    SectionCard(
+                      title: 'Recomendaciones',
+                      child: BulletList(items: synthesis.recommendations),
+                    ),
+                ],
+                if (a.evidences.isNotEmpty) ...[
+                  gap,
+                  SectionHeader(
+                    eyebrow: 'EVIDENCIAS',
+                    title: 'Lo que lo respalda',
+                    subtitle: verificationRate == null
+                        ? 'Citas cortas de tu transcripción.'
+                        : 'Citas verificadas de tu transcripción · ${Formatters.percent(verificationRate)} de '
+                              'coincidencia.',
+                  ),
+                  _EvidenceCard(evidences: a.evidences),
+                ],
+                if (a.warnings.isNotEmpty || a.transcriptTrimmed) ...[gap, _WarningsCard(analysis: a)],
                 gap,
-                ScoreCard(
-                  aspect: entry.value,
-                  score: score.median,
-                  note: score.disagreement ? 'Los modelos no coinciden del todo en este puntaje.' : null,
+                Text(
+                  'Talky analiza señales observables del habla. No evalúa tu valor como persona ni sustituye la '
+                  'retroalimentación de tu docente.',
+                  style: AppText.caption.copyWith(color: AppColors.inkMuted),
+                  textAlign: TextAlign.center,
                 ),
               ],
-            if (a.fillers.isNotEmpty) ...[
-              gap,
-              SectionCard(
-                title: 'Muletillas',
-                subtitle: '${a.totalFillers} en total',
-                child: FillerChart(counts: a.fillers),
-              ),
-            ],
-            if (RhythmChart.visibleWindows(a.rhythm).length > 1) ...[
-              gap,
-              SectionCard(
-                title: 'Ritmo a lo largo de la exposición',
-                subtitle: 'Palabras por minuto cada 30 segundos. La franja clara es el rango adecuado.',
-                child: RhythmChart(windows: a.rhythm),
-              ),
-            ],
-            if (a.pauses case final pauses?) ...[gap, _PausesCard(pauses: pauses)],
-            if (a.acousticEvents case final events?) ...[gap, _EventsCard(events: events)],
-            if (synthesis != null && synthesis.strengths.isNotEmpty) ...[
-              gap,
-              SectionCard(
-                title: 'Fortalezas',
-                child: BulletList(items: synthesis.strengths, color: AppColors.success),
-              ),
-            ],
-            if (synthesis != null && synthesis.improvements.isNotEmpty) ...[
-              gap,
-              SectionCard(
-                title: 'Aspectos por mejorar',
-                child: BulletList(items: synthesis.improvements, color: AppColors.warning),
-              ),
-            ],
-            if (synthesis != null && synthesis.recommendations.isNotEmpty) ...[
-              gap,
-              SectionCard(
-                title: 'Recomendaciones',
-                child: BulletList(items: synthesis.recommendations),
-              ),
-            ],
-            if (a.evidences.isNotEmpty) ...[gap, _EvidenceCard(evidences: a.evidences)],
-            if (a.warnings.isNotEmpty || a.transcriptTrimmed) ...[gap, _WarningsCard(analysis: a)],
-          ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _Summary extends StatelessWidget {
-  const _Summary({required this.text});
+class _Hero extends StatelessWidget {
+  const _Hero({required this.summary});
 
-  final String text;
+  final String summary;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TalkyMascot(state: MascotState.talking, size: 112),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(child: SpeechBubble(text: text.isEmpty ? 'Aquí tienes cómo te fue en tu exposición.' : text)),
+        const AppPill(label: 'ANÁLISIS COMPLETADO'),
+        const SizedBox(height: AppSpacing.sm),
+        Semantics(header: true, child: Text('Así te escuchó Talky.', style: AppText.display)),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const TalkyMascot(state: MascotState.talking, size: 112),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: SpeechBubble(
+                text: summary.isEmpty
+                    ? 'Una mirada a lo que ya haces bien y a lo que puedes ajustar en tu próxima exposición.'
+                    : summary,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -113,8 +203,7 @@ class _KeyMetrics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = analysis;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return MetricRow(
       children: [
         Expanded(
           child: MetricTile(value: Formatters.duration(a.durationS), unit: 'duración'),
@@ -136,6 +225,9 @@ class _KeyMetrics extends StatelessWidget {
   }
 }
 
+/// Fondo de las métricas que van dentro de una tarjeta blanca.
+const _soft = AppColors.canvas;
+
 class _PausesCard extends StatelessWidget {
   const _PausesCard({required this.pauses});
 
@@ -144,16 +236,65 @@ class _PausesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      title: 'Pausas largas',
-      subtitle: 'Silencios de un segundo o más.',
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: MetricTile(value: '${pauses.longPauses}', unit: 'pausas largas'),
+          MetricRow(
+            children: [
+              MetricTile(value: '${pauses.longPauses}', unit: 'pausas largas', background: _soft),
+              MetricTile(value: '${Formatters.number(pauses.longestS)} s', unit: 'pausa más larga', background: _soft),
+            ],
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: MetricTile(value: '${Formatters.number(pauses.longestS)} s', unit: 'la más larga'),
+          const SizedBox(height: AppSpacing.sm),
+          MetricRow(
+            children: [
+              MetricTile(
+                value: '${Formatters.number(pauses.secondsInPauses)} s',
+                unit: 'tiempo en silencio',
+                background: _soft,
+              ),
+              MetricTile(value: Formatters.number(pauses.perMinute), unit: 'pausas por minuto', background: _soft),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Una pausa breve puede dar énfasis. Varias pausas largas seguidas pueden cortar el hilo de tu explicación.',
+            style: AppText.caption.copyWith(color: AppColors.inkMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoherenceCard extends StatelessWidget {
+  const _CoherenceCard({required this.coherence});
+
+  final Coherence coherence;
+
+  @override
+  Widget build(BuildContext context) {
+    final similarity = coherence.meanSimilarity;
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MetricRow(
+            children: [
+              if (similarity != null)
+                MetricTile(
+                  value: Formatters.percent(similarity),
+                  unit: 'similitud entre ideas seguidas',
+                  background: _soft,
+                ),
+              MetricTile(value: '${coherence.topicJumps}', unit: 'saltos de tema', background: _soft),
+              MetricTile(value: '${coherence.repeatedPairs}', unit: 'ideas repetidas', background: _soft),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Es una señal orientativa calculada a partir de la transcripción, no una nota.',
+            style: AppText.caption.copyWith(color: AppColors.inkMuted),
           ),
         ],
       ),
@@ -170,8 +311,6 @@ class _EventsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final all = [...events.fillers, ...events.hums]..sort((x, y) => x.startS.compareTo(y.startS));
     return SectionCard(
-      title: 'Sonidos detectados',
-      subtitle: 'Muletillas vocales y tatareos, con el momento en que ocurren.',
       child: all.isEmpty
           ? Text('No encontramos tatareos ni muletillas vocales.', style: AppText.body)
           : Wrap(
@@ -180,7 +319,7 @@ class _EventsCard extends StatelessWidget {
               children: [
                 for (final e in all)
                   Chip(
-                    label: Text('${e.label}  ${Formatters.duration(e.startS)}', style: AppText.caption),
+                    label: Text('«${e.label}»  ${Formatters.duration(e.startS)}', style: AppText.caption),
                     backgroundColor: AppColors.tint20,
                     side: BorderSide.none,
                   ),
@@ -197,34 +336,30 @@ class _EvidenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SectionCard(
-      title: 'En tus propias palabras',
-      subtitle: 'Frases de tu exposición que respaldan los comentarios.',
-      child: Column(
-        children: [
-          for (final e in evidences)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.canvas,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: const Border(left: BorderSide(color: AppColors.primary, width: 4)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('"${e.quote}"', style: AppText.body.copyWith(fontStyle: FontStyle.italic)),
-                  if (e.claim.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(e.claim, style: AppText.caption.copyWith(color: AppColors.inkMuted)),
-                  ],
-                ],
-              ),
+    return Column(
+      children: [
+        for (final e in evidences)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              border: const Border(left: BorderSide(color: AppColors.primary, width: 4)),
             ),
-        ],
-      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (e.claim.isNotEmpty) ...[Text(e.claim, style: AppText.bodyStrong), const SizedBox(height: 4)],
+                Text(
+                  '«${e.quote}»',
+                  style: AppText.body.copyWith(fontStyle: FontStyle.italic, color: AppColors.inkMuted),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

@@ -35,17 +35,24 @@ class SectionCard extends StatelessWidget {
 
 /// Cifra clave con unidad y etiqueta (componente "Metrica" de Figma).
 class MetricTile extends StatelessWidget {
-  const MetricTile({super.key, required this.value, required this.unit, this.label = ''});
+  const MetricTile({
+    super.key,
+    required this.value,
+    required this.unit,
+    this.label = '',
+    this.background = AppColors.surface,
+  });
 
   final String value;
   final String unit;
   final String label;
+  final Color background;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(AppRadius.md)),
+      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -61,18 +68,47 @@ class MetricTile extends StatelessWidget {
   }
 }
 
-/// Puntaje de 1 a 10 con barra (componente "Puntaje" de Figma).
+/// Fila de tarjetas del mismo ancho y la misma altura.
+class MetricRow extends StatelessWidget {
+  const MetricRow({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.sm),
+            Expanded(child: children[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Puntaje de 1 a 10 con barra, descripción y rango entre modelos (componente "Puntaje" de Figma).
 class ScoreCard extends StatelessWidget {
-  const ScoreCard({super.key, required this.aspect, required this.score, this.note});
+  const ScoreCard({super.key, required this.aspect, required this.score, this.description, this.range, this.note});
 
   final String aspect;
   final double score;
+  final String? description;
+
+  /// Puntaje mínimo y máximo entre los modelos.
+  final (double, double)? range;
   final String? note;
+
+  static String _fmt(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 
   @override
   Widget build(BuildContext context) {
     final value = score.clamp(0, 10).toDouble();
-    final shown = value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
+    final shown = _fmt(value);
+    final spread = range;
     return Semantics(
       label: '$aspect: $shown de 10',
       excludeSemantics: true,
@@ -81,8 +117,18 @@ class ScoreCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: Text(aspect, style: AppText.heading)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(aspect, style: AppText.heading),
+                      if (description != null)
+                        Text(description!, style: AppText.caption.copyWith(color: AppColors.inkMuted)),
+                    ],
+                  ),
+                ),
                 Text('$shown/10', style: AppText.metric.copyWith(color: AppColors.action)),
               ],
             ),
@@ -96,8 +142,15 @@ class ScoreCard extends StatelessWidget {
                 color: AppColors.primary,
               ),
             ),
+            if (spread != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Los modelos dieron entre ${_fmt(spread.$1)} y ${_fmt(spread.$2)}.',
+                style: AppText.caption.copyWith(color: AppColors.inkMuted),
+              ),
+            ],
             if (note != null) ...[
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.xs),
               Text(note!, style: AppText.caption.copyWith(color: AppColors.warning)),
             ],
           ],

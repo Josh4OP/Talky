@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../core/formatters.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
@@ -107,8 +108,9 @@ class RhythmChart extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   interval: math.max(1, (values.length / 5).ceilToDouble()),
+                  maxIncluded: false,
                   getTitlesWidget: (value, meta) => Text(
-                    '${(value * 30 / 60).toStringAsFixed(value * 30 % 60 == 0 ? 0 : 1)} min',
+                    '${Formatters.number(value * 30 / 60, decimals: value * 30 % 60 == 0 ? 0 : 1)} min',
                     style: AppText.caption.copyWith(color: AppColors.inkMuted),
                   ),
                 ),

@@ -76,6 +76,9 @@ class SessionStore {
     return session.token;
   }
 
+  /// Vencimiento de la sesión guardada; `null` si todavía no hay sesión.
+  Future<DateTime?> expiresAt() async => (_current ??= await _storage.read())?.expiresAt;
+
   /// Tras un 401: intenta renovar; si el servidor rechaza el token, crea una identidad nueva.
   Future<String> recover() async {
     final session = _current ??= await _storage.read();
